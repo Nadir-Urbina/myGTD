@@ -6,32 +6,61 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
 import { Mail, CheckCircle, AlertCircle } from 'lucide-react';
+import { applyActionCode } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 export default function VerifyEmailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   
-  const { signInWithLink } = useAuth();
+  const { user, signInWithLink } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
   useEffect(() => {
     const handleEmailVerification = async () => {
       try {
-        // Get the full URL including query parameters
         const url = window.location.href;
-        
-        // Attempt to sign in with the email link
-        await signInWithLink(url);
-        setSuccess(true);
-        
-        // Redirect to main app after a brief delay
-        setTimeout(() => {
-          router.push('/');
-        }, 2000);
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode');
+        const actionCode = urlParams.get('oobCode');
+
+        console.log('Verification mode:', mode);
+        console.log('Action code:', actionCode);
+        console.log('Current user:', user);
+
+        // Handle different email action modes
+        if (mode === 'verifyEmail' && actionCode) {
+          // This is an email verification link
+          await applyActionCode(auth, actionCode);
+          setSuccess(true);
+          
+          // If user is already signed in, just redirect
+          if (user) {
+            setTimeout(() => {
+              router.push('/');
+            }, 2000);
+          } else {
+            // User needs to sign in after verification
+            setTimeout(() => {
+              router.push('/auth/login?verified=true');
+            }, 2000);
+          }
+        } else if (mode === 'signIn' || !mode) {
+          // This might be a sign-in link, try the original flow
+          await signInWithLink(url);
+          setSuccess(true);
+          
+          setTimeout(() => {
+            router.push('/');
+          }, 2000);
+        } else {
+          throw new Error('Invalid verification link');
+        }
         
       } catch (error: any) {
+        console.error('Verification error:', error);
         setError(error.message);
       } finally {
         setLoading(false);
@@ -39,7 +68,7 @@ export default function VerifyEmailPage() {
     };
 
     handleEmailVerification();
-  }, [signInWithLink, router]);
+  }, [signInWithLink, router, user]);
 
   if (loading) {
     return (

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useAuth } from '@/contexts/auth-context';
 import { AppLayout } from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,10 +12,8 @@ import { InboxItem } from '@/types';
 import { inboxService } from '@/services/firebase';
 import { formatDate } from '@/lib/utils';
 
-// Mock user ID for now - we'll add auth later
-const MOCK_USER_ID = 'user_123';
-
 export default function InboxPage() {
+  const { user } = useAuth();
   const [inboxItems, setInboxItems] = useState<InboxItem[]>([]);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [loading, setLoading] = useState(true);
@@ -24,22 +24,24 @@ export default function InboxPage() {
   }>({ isOpen: false, itemId: null });
 
   useEffect(() => {
+    if (!user) return;
+
     // Subscribe to inbox changes
-    const unsubscribe = inboxService.subscribeToInbox(MOCK_USER_ID, (items) => {
+    const unsubscribe = inboxService.subscribeToInbox(user.uid, (items) => {
       setInboxItems(items);
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [user]);
 
   const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTaskTitle.trim() || adding) return;
+    if (!newTaskTitle.trim() || adding || !user) return;
 
     setAdding(true);
     try {
-      await inboxService.addInboxItem(MOCK_USER_ID, {
+      await inboxService.addInboxItem(user.uid, {
         title: newTaskTitle.trim(),
         processed: false,
       });
@@ -52,8 +54,10 @@ export default function InboxPage() {
   };
 
   const handleMarkAsProcessed = async (item: InboxItem) => {
+    if (!user) return;
+
     try {
-      await inboxService.updateInboxItem(MOCK_USER_ID, item.id, {
+      await inboxService.updateInboxItem(user.uid, item.id, {
         processed: true,
       });
     } catch (error) {
@@ -65,11 +69,11 @@ export default function InboxPage() {
     setDeleteConfirmation({ isOpen: true, itemId });
   };
 
-  const confirmDelete = async () => {
-    if (!deleteConfirmation.itemId) return;
-    
+    const confirmDelete = async () => {
+    if (!deleteConfirmation.itemId || !user) return;
+
     try {
-      await inboxService.deleteInboxItem(MOCK_USER_ID, deleteConfirmation.itemId);
+      await inboxService.deleteInboxItem(user.uid, deleteConfirmation.itemId);
     } catch (error) {
       console.error('Error deleting task:', error);
     } finally {
@@ -127,18 +131,17 @@ export default function InboxPage() {
                   {unprocessedItems.map((item) => (
                     <div key={item.id} className="p-4 hover:bg-gray-50 transition-colors">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-0">
-                        <div 
-                          className="flex-1 min-w-0 cursor-pointer"
-                          onClick={() => window.location.href = `/inbox/${item.id}`}
-                        >
-                          <h3 className="font-medium text-gray-900 truncate">
-                            {item.title}
-                          </h3>
-                          <div className="flex items-center text-sm text-gray-500 mt-1">
-                            <Clock className="h-3 w-3 mr-1" />
-                            {formatDate(item.createdAt)}
+                        <Link href={`/inbox/${item.id}`} className="flex-1 min-w-0">
+                          <div className="cursor-pointer">
+                            <h3 className="font-medium text-gray-900 truncate hover:text-blue-600 transition-colors">
+                              {item.title}
+                            </h3>
+                            <div className="flex items-center text-sm text-gray-500 mt-1">
+                              <Clock className="h-3 w-3 mr-1" />
+                              {formatDate(item.createdAt)}
+                            </div>
                           </div>
-                        </div>
+                        </Link>
                         <div className="flex items-center gap-2 sm:ml-4">
                           <Button
                             variant="outline"

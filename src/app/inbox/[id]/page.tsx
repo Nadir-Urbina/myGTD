@@ -8,12 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { ArrowLeft, Save, Trash2, ArrowRight } from 'lucide-react';
-import { InboxItem, NextActionStatus } from '@/types';
-import { inboxService, nextActionsService } from '@/services/firebase';
+import { InboxItem, NextActionStatus, MaybeSomedayStatus } from '@/types';
+import { inboxService, nextActionsService, maybeSomedayService } from '@/services/firebase';
 import { formatDate } from '@/lib/utils';
-
-// Mock user ID for now
-const MOCK_USER_ID = 'user_123';
+import { useAuth } from '@/contexts/auth-context';
 
 interface InboxDetailPageProps {
   params: Promise<{ id: string }>;
@@ -22,6 +20,7 @@ interface InboxDetailPageProps {
 export default function InboxDetailPage({ params }: InboxDetailPageProps) {
   const { id } = use(params);
   const router = useRouter();
+  const { user } = useAuth();
   const [item, setItem] = useState<InboxItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -32,11 +31,13 @@ export default function InboxDetailPage({ params }: InboxDetailPageProps) {
 
   useEffect(() => {
     loadItem();
-  }, [id]);
+  }, [id, user]);
 
   const loadItem = async () => {
+    if (!user) return;
+    
     try {
-      const items = await inboxService.getInboxItems(MOCK_USER_ID);
+      const items = await inboxService.getInboxItems(user.uid);
       const foundItem = items.find(i => i.id === id);
       if (foundItem) {
         setItem(foundItem);
@@ -55,11 +56,11 @@ export default function InboxDetailPage({ params }: InboxDetailPageProps) {
   };
 
   const handleSave = async () => {
-    if (!item || saving) return;
+    if (!item || saving || !user) return;
 
     setSaving(true);
     try {
-      await inboxService.updateInboxItem(MOCK_USER_ID, item.id, {
+      await inboxService.updateInboxItem(user.uid, item.id, {
         title,
         description: description || undefined,
         notes: notes || undefined,
@@ -85,10 +86,10 @@ export default function InboxDetailPage({ params }: InboxDetailPageProps) {
   };
 
   const confirmDelete = async () => {
-    if (!item) return;
+    if (!item || !user) return;
 
     try {
-      await inboxService.deleteInboxItem(MOCK_USER_ID, item.id);
+      await inboxService.deleteInboxItem(user.uid, item.id);
       router.push('/inbox');
     } catch (error) {
       console.error('Error deleting item:', error);
@@ -102,10 +103,10 @@ export default function InboxDetailPage({ params }: InboxDetailPageProps) {
   };
 
   const handleConvertToNextAction = async () => {
-    if (!item) return;
+    if (!item || !user) return;
 
     try {
-      await nextActionsService.convertInboxToNextAction(MOCK_USER_ID, item, {
+      await nextActionsService.convertInboxToNextAction(user.uid, item, {
         title,
         description: description || undefined,
         notes: notes || undefined,
@@ -117,11 +118,27 @@ export default function InboxDetailPage({ params }: InboxDetailPageProps) {
     }
   };
 
-  const handleMarkAsProcessed = async () => {
-    if (!item) return;
+  const handleConvertToMaybeSomeday = async () => {
+    if (!item || !user) return;
 
     try {
-      await inboxService.updateInboxItem(MOCK_USER_ID, item.id, {
+      await maybeSomedayService.convertInboxToMaybeSomeday(user.uid, item, {
+        title,
+        description: description || undefined,
+        notes: notes || undefined,
+        status: MaybeSomedayStatus.MAYBE,
+      });
+      router.push('/maybe-someday');
+    } catch (error) {
+      console.error('Error converting to maybe/someday:', error);
+    }
+  };
+
+  const handleMarkAsProcessed = async () => {
+    if (!item || !user) return;
+
+    try {
+      await inboxService.updateInboxItem(user.uid, item.id, {
         processed: true,
       });
       setItem({ ...item, processed: true });
@@ -269,6 +286,14 @@ export default function InboxDetailPage({ params }: InboxDetailPageProps) {
                     >
                       <ArrowRight className="h-4 w-4 mr-2" />
                       Convert to Next Action
+                    </Button>
+                    <Button
+                      onClick={handleConvertToMaybeSomeday}
+                      variant="outline"
+                      className="w-full justify-start"
+                    >
+                      <ArrowRight className="h-4 w-4 mr-2" />
+                      Convert to Maybe/Someday
                     </Button>
                     <Button
                       variant="outline"

@@ -78,4 +78,17 @@ export interface CalendarEvent {
   emailSent: boolean;
   emailAccepted?: boolean;
   createdAt: Date;
+}
+
+export enum MaybeSomedayStatus {
+  SOMEDAY = 'someday',
+  MAYBE = 'maybe',
+  ARCHIVED = 'archived'
+}
+
+export interface MaybeSomedayItem extends BaseItem {
+  status: MaybeSomedayStatus;
+  reviewDate?: Date; // when to review this item again
+  priority?: 'low' | 'medium' | 'high'; // priority within maybe/someday
+  tags?: string[]; // for organizing maybe/someday items
 } 

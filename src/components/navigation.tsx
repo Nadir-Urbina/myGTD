@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
-import { Inbox, CheckSquare, Calendar, FolderOpen, Menu, X, User, LogOut, ChevronDown } from 'lucide-react';
+import { Inbox, CheckSquare, Calendar, FolderOpen, Menu, X, User, LogOut, ChevronDown, Cloud } from 'lucide-react';
 
 const navigationItems = [
   {
@@ -31,6 +31,12 @@ const navigationItems = [
     href: '/projects',
     icon: FolderOpen,
     description: 'Multi-step initiatives',
+  },
+  {
+    name: 'Maybe/Someday',
+    href: '/maybe-someday',
+    icon: Cloud,
+    description: 'Ideas for the future',
   },
 ];
 

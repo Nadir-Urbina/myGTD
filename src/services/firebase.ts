@@ -13,7 +13,7 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { InboxItem, NextAction, Project, ProjectTask, NextActionStatus, ProjectStatus, ProjectTaskStatus } from '@/types';
+import { InboxItem, NextAction, Project, ProjectTask, NextActionStatus, ProjectStatus, ProjectTaskStatus, MaybeSomedayItem, MaybeSomedayStatus } from '@/types';
 
 // Helper function to convert Firestore timestamps to Date objects
 const convertTimestamps = (data: any) => ({
@@ -522,5 +522,201 @@ export const projectsService = {
         ...(nextAction.status === NextActionStatus.DONE && nextAction.completedDate ? { completedAt: nextAction.completedDate } : {})
       }
     );
+  },
+}; 
+
+// Maybe/Someday Operations
+export const maybeSomedayService = {
+  // Get all maybe/someday items for a user
+  async getMaybeSomedayItems(userId: string): Promise<MaybeSomedayItem[]> {
+    const q = query(
+      collection(db, `users/${userId}/maybeSomeday`),
+      orderBy('createdAt', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...convertTimestamps(doc.data())
+    })) as MaybeSomedayItem[];
+  },
+
+  // Subscribe to maybe/someday items changes
+  subscribeToMaybeSomedayItems(userId: string, callback: (items: MaybeSomedayItem[]) => void) {
+    const q = query(
+      collection(db, `users/${userId}/maybeSomeday`),
+      orderBy('createdAt', 'desc')
+    );
+    
+    return onSnapshot(q, (snapshot) => {
+      const items = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...convertTimestamps(doc.data())
+      })) as MaybeSomedayItem[];
+      callback(items);
+    });
+  },
+
+  // Add new maybe/someday item
+  async addMaybeSomedayItem(userId: string, item: Omit<MaybeSomedayItem, 'id' | 'userId' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    const now = Timestamp.now();
+    
+    // Prepare document data, filtering out undefined values
+    const docData: any = {
+      title: item.title,
+      userId,
+      status: item.status || MaybeSomedayStatus.MAYBE,
+      createdAt: now,
+      updatedAt: now,
+    };
+    
+    // Only add fields that are not undefined
+    if (item.description !== undefined) {
+      docData.description = item.description;
+    }
+    if (item.notes !== undefined) {
+      docData.notes = item.notes;
+    }
+    if (item.priority !== undefined) {
+      docData.priority = item.priority;
+    }
+    if (item.tags !== undefined) {
+      docData.tags = item.tags;
+    }
+    if (item.reviewDate !== undefined) {
+      docData.reviewDate = Timestamp.fromDate(item.reviewDate);
+    }
+    
+    const docRef = await addDoc(collection(db, `users/${userId}/maybeSomeday`), docData);
+    return docRef.id;
+  },
+
+  // Update maybe/someday item
+  async updateMaybeSomedayItem(userId: string, itemId: string, updates: Partial<MaybeSomedayItem>): Promise<void> {
+    const itemRef = doc(db, `users/${userId}/maybeSomeday`, itemId);
+    
+    // Prepare update data, filtering out undefined values
+    const updateData: any = {
+      updatedAt: Timestamp.now(),
+    };
+    
+    // Only add fields that are not undefined
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value !== undefined) {
+        if (key === 'reviewDate' && value instanceof Date) {
+          updateData[key] = Timestamp.fromDate(value);
+        } else {
+          updateData[key] = value;
+        }
+      }
+    });
+    
+    await updateDoc(itemRef, updateData);
+  },
+
+  // Delete maybe/someday item
+  async deleteMaybeSomedayItem(userId: string, itemId: string): Promise<void> {
+    const itemRef = doc(db, `users/${userId}/maybeSomeday`, itemId);
+    await deleteDoc(itemRef);
+  },
+
+  // Convert inbox item to maybe/someday
+  async convertInboxToMaybeSomeday(
+    userId: string, 
+    inboxItem: InboxItem, 
+    maybeSomedayData: Partial<MaybeSomedayItem>
+  ): Promise<void> {
+    const batch = writeBatch(db);
+    
+    // Prepare maybe/someday data, filtering out undefined values
+    const maybeSomedayDoc: any = {
+      title: inboxItem.title,
+      userId,
+      status: MaybeSomedayStatus.MAYBE,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    };
+    
+    // Only add fields that are not undefined
+    if (inboxItem.description !== undefined) {
+      maybeSomedayDoc.description = inboxItem.description;
+    }
+    if (inboxItem.notes !== undefined) {
+      maybeSomedayDoc.notes = inboxItem.notes;
+    }
+    
+    // Add additional maybe/someday data, filtering undefined values
+    Object.entries(maybeSomedayData).forEach(([key, value]) => {
+      if (value !== undefined) {
+        if (key === 'reviewDate' && value instanceof Date) {
+          maybeSomedayDoc[key] = Timestamp.fromDate(value);
+        } else {
+          maybeSomedayDoc[key] = value;
+        }
+      }
+    });
+    
+    // Add to maybe/someday
+    const maybeSomedayRef = doc(collection(db, `users/${userId}/maybeSomeday`));
+    batch.set(maybeSomedayRef, maybeSomedayDoc);
+    
+    // Mark inbox item as processed
+    const inboxRef = doc(db, `users/${userId}/inbox`, inboxItem.id);
+    batch.update(inboxRef, {
+      processed: true,
+      updatedAt: Timestamp.now(),
+    });
+    
+    await batch.commit();
+  },
+
+  // Convert maybe/someday item to next action
+  async convertMaybeSomedayToNextAction(
+    userId: string,
+    maybeSomedayItem: MaybeSomedayItem,
+    nextActionData?: Partial<NextAction>
+  ): Promise<void> {
+    const batch = writeBatch(db);
+    
+    // Prepare next action data
+    const nextActionDoc: any = {
+      title: maybeSomedayItem.title,
+      userId,
+      status: NextActionStatus.QUEUED,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    };
+    
+    // Only add fields that are not undefined
+    if (maybeSomedayItem.description !== undefined) {
+      nextActionDoc.description = maybeSomedayItem.description;
+    }
+    if (maybeSomedayItem.notes !== undefined) {
+      nextActionDoc.notes = maybeSomedayItem.notes;
+    }
+    
+    // Add additional next action data, filtering undefined values
+    if (nextActionData) {
+      Object.entries(nextActionData).forEach(([key, value]) => {
+        if (value !== undefined) {
+          if (key === 'scheduledDate' && value instanceof Date) {
+            nextActionDoc[key] = Timestamp.fromDate(value);
+          } else if (key === 'completedDate' && value instanceof Date) {
+            nextActionDoc[key] = Timestamp.fromDate(value);
+          } else {
+            nextActionDoc[key] = value;
+          }
+        }
+      });
+    }
+    
+    // Add to next actions
+    const nextActionRef = doc(collection(db, `users/${userId}/nextActions`));
+    batch.set(nextActionRef, nextActionDoc);
+    
+    // Delete maybe/someday item
+    const maybeSomedayRef = doc(db, `users/${userId}/maybeSomeday`, maybeSomedayItem.id);
+    batch.delete(maybeSomedayRef);
+    
+    await batch.commit();
   },
 }; 

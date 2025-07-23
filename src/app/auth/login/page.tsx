@@ -1,23 +1,33 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Mail, Lock, LogIn, Link2 } from 'lucide-react';
+import { Mail, Lock, LogIn, Link2, Eye, EyeOff, CheckCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [emailLinkLoading, setEmailLinkLoading] = useState(false);
   const [error, setError] = useState('');
   const [emailLinkSent, setEmailLinkSent] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
   
   const { signIn, sendSignInLink } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    // Check if user was redirected here after email verification
+    if (searchParams.get('verified') === 'true') {
+      setEmailVerified(true);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,6 +111,24 @@ export default function LoginPage() {
           ) : (
             <>
               <form className="space-y-6" onSubmit={handleSubmit}>
+                {emailVerified && (
+                  <div className="rounded-md bg-green-50 p-4">
+                    <div className="flex">
+                      <div className="flex-shrink-0">
+                        <CheckCircle className="h-5 w-5 text-green-400" />
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-sm font-medium text-green-800">
+                          Email verified successfully!
+                        </p>
+                        <p className="mt-1 text-sm text-green-700">
+                          You can now sign in with your email and password.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {error && (
                   <div className="rounded-md bg-red-50 p-4">
                     <div className="text-sm text-red-700">{error}</div>
@@ -135,15 +163,26 @@ export default function LoginPage() {
                     <Input
                       id="password"
                       name="password"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       autoComplete="current-password"
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pl-10"
+                      className="pl-10 pr-10"
                       placeholder="Enter your password"
                     />
                     <Lock className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )}
+                    </button>
                   </div>
                 </div>
 
