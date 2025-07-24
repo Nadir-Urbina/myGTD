@@ -26,9 +26,7 @@ export default function VerifyEmailPage() {
         const mode = urlParams.get('mode');
         const actionCode = urlParams.get('oobCode');
 
-        console.log('Verification mode:', mode);
-        console.log('Action code:', actionCode);
-        console.log('Current user:', user);
+
 
         // Handle different email action modes
         if (mode === 'verifyEmail' && actionCode) {
@@ -59,8 +57,7 @@ export default function VerifyEmailPage() {
           throw new Error('Invalid verification link');
         }
         
-      } catch (error: any) {
-        console.error('Verification error:', error);
+              } catch (error: any) {
         setError(error.message);
       } finally {
         setLoading(false);

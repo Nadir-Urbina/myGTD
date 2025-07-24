@@ -18,7 +18,7 @@ export default function LoginPage() {
   const [emailLinkSent, setEmailLinkSent] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
   
-  const { signIn, sendSignInLink } = useAuth();
+  const { user, loading: authLoading, signIn, sendSignInLink } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -28,6 +28,25 @@ export default function LoginPage() {
       setEmailVerified(true);
     }
   }, [searchParams]);
+
+  // Redirect to main app when user becomes authenticated
+  useEffect(() => {
+    if (user && !authLoading) {
+      router.push('/');
+    }
+  }, [user, authLoading, router]);
+
+  // Don't render login form if user is already authenticated
+  if (user && !authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Redirecting...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,10 +60,9 @@ export default function LoginPage() {
     
     try {
       await signIn(email, password);
-      router.push('/');
+      // Redirect will be handled by useEffect when auth state updates
     } catch (error: any) {
       setError(error.message);
-    } finally {
       setLoading(false);
     }
   };

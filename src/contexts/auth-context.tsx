@@ -12,6 +12,7 @@ interface AuthContextType {
   sendSignInLink: (email: string) => Promise<void>;
   signInWithLink: (url: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -34,7 +35,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     const unsubscribe = AuthService.onAuthStateChanged((user) => {
-      console.log('Auth state changed:', user);
       setUser(user);
       setLoading(false);
     });
@@ -94,6 +94,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
     await AuthService.resetPassword(email);
   };
 
+  const refreshUser = async () => {
+    const currentUser = AuthService.getCurrentUser();
+    if (currentUser) {
+      // Reload user to get fresh data from Firebase
+      await currentUser.reload();
+      
+      // Update local state with fresh user data
+      setUser({
+        uid: currentUser.uid,
+        email: currentUser.email,
+        displayName: currentUser.displayName,
+        emailVerified: currentUser.emailVerified
+      });
+    }
+  };
+
   const value = {
     user,
     loading,
@@ -102,7 +118,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signOut,
     sendSignInLink,
     signInWithLink,
-    resetPassword
+    resetPassword,
+    refreshUser
   };
 
   return (

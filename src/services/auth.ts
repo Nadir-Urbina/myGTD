@@ -35,6 +35,10 @@ export class AuthService {
       // Send email verification
       await sendEmailVerification(user);
       
+      // Sign out the user so they must verify email and sign in manually
+      // This creates a clearer flow: Register → Verify Email → Sign In → Access App
+      await signOut(auth);
+      
       return {
         uid: user.uid,
         email: user.email,
