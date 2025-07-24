@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { nextActionsService } from '@/services/firebase';
+import { NextAction } from '@/types';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Generate ICS (calendar) file content
-function generateICS(action: any): string {
-  const startDate = new Date(action.scheduledDate);
+function generateICS(action: NextAction): string {
+  const startDate = new Date(action.scheduledDate || new Date());
   const endDate = new Date(startDate.getTime() + (action.estimatedDuration || 30) * 60000); // Add duration in minutes
   
   // Format dates for ICS (YYYYMMDDTHHMMSSZ)

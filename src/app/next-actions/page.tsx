@@ -6,7 +6,7 @@ import { AppLayout } from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
-import { Plus, Clock, Calendar, CheckCircle, CircleDot, PlayCircle } from 'lucide-react';
+import { Plus, Clock, Calendar, CheckCircle, CircleDot } from 'lucide-react';
 import { NextAction, NextActionStatus } from '@/types';
 import { nextActionsService } from '@/services/firebase';
 import { formatDate } from '@/lib/utils';

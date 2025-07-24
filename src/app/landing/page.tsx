@@ -10,14 +10,9 @@ import {
   Calendar, 
   FolderOpen, 
   Cloud, 
-  Zap, 
-  Shield, 
-  Smartphone, 
-  Clock, 
-  Users,
+  Zap,
   Check,
   ArrowRight,
-  Star,
   Target,
   Brain,
   Workflow
@@ -231,7 +226,7 @@ export default function LandingPage() {
               Why Choose MyGTD?
             </h2>
             <p className="text-xl text-gray-600">
-              Join thousands who've transformed their productivity with our proven system.
+              Join thousands who&apos;ve transformed their productivity with our proven system.
             </p>
           </div>
 
@@ -260,7 +255,7 @@ export default function LandingPage() {
               Simple, Transparent Pricing
             </h2>
             <p className="text-xl text-gray-600 mb-8">
-              Start free, upgrade when you're ready for advanced features.
+              Start free, upgrade when you&apos;re ready for advanced features.
             </p>
             
             {/* Billing Toggle */}

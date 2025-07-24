@@ -8,9 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
-import { ArrowLeft, Save, Trash2, ArrowRight, Calendar, Star, Tag, Cloud, Lightbulb, Archive } from 'lucide-react';
+import { ArrowLeft, Save, Trash2, ArrowRight, Calendar, Tag, Cloud, Lightbulb, Archive } from 'lucide-react';
 import { MaybeSomedayItem, MaybeSomedayStatus } from '@/types';
-import { maybeSomedayService, nextActionsService } from '@/services/firebase';
+import { maybeSomedayService } from '@/services/firebase';
 import { formatDate } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -46,7 +46,7 @@ export default function MaybeSomedayDetailPage({ params }: MaybeSomedayDetailPag
   const [description, setDescription] = useState('');
   const [notes, setNotes] = useState('');
   const [status, setStatus] = useState<MaybeSomedayStatus>(MaybeSomedayStatus.MAYBE);
-  const [priority, setPriority] = useState<string>('');
+  const [priority, setPriority] = useState<'low' | 'medium' | 'high' | ''>('');
   const [reviewDate, setReviewDate] = useState('');
   const [tagsInput, setTagsInput] = useState('');
 
@@ -94,7 +94,7 @@ export default function MaybeSomedayDetailPage({ params }: MaybeSomedayDetailPag
         description: description.trim() || undefined,
         notes: notes.trim() || undefined,
         status,
-        priority: priority || undefined,
+        priority: priority === '' ? undefined : (priority as 'low' | 'medium' | 'high'),
         reviewDate: reviewDate ? new Date(reviewDate) : undefined,
         tags: tagsInput.trim() ? tagsInput.split(',').map(tag => tag.trim()).filter(Boolean) : undefined,
       };
@@ -158,8 +158,6 @@ export default function MaybeSomedayDetailPage({ params }: MaybeSomedayDetailPag
       </AppLayout>
     );
   }
-
-  const currentStatus = statusOptions.find(s => s.value === status);
 
   return (
     <AppLayout>
@@ -249,7 +247,7 @@ export default function MaybeSomedayDetailPage({ params }: MaybeSomedayDetailPag
                     </label>
                     <select
                       value={priority}
-                      onChange={(e) => setPriority(e.target.value)}
+                      onChange={(e) => setPriority(e.target.value as 'low' | 'medium' | 'high' | '')}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       {priorityOptions.map(option => (
@@ -386,23 +384,23 @@ export default function MaybeSomedayDetailPage({ params }: MaybeSomedayDetailPag
         {/* Delete Confirmation */}
         <ConfirmationDialog
           isOpen={deleteConfirmation}
-          onClose={() => setDeleteConfirmation(false)}
+          onCancel={() => setDeleteConfirmation(false)}
           onConfirm={handleDelete}
           title="Delete Item"
           message="Are you sure you want to delete this maybe/someday item? This action cannot be undone."
           confirmText="Delete"
-          confirmButtonClass="bg-red-600 hover:bg-red-700 text-white"
+          variant="danger"
         />
 
         {/* Convert Confirmation */}
         <ConfirmationDialog
           isOpen={convertConfirmation}
-          onClose={() => setConvertConfirmation(false)}
+          onCancel={() => setConvertConfirmation(false)}
           onConfirm={handleConvertToNextAction}
           title="Convert to Next Action"
           message="This will move the item to your Next Actions list and remove it from Maybe/Someday. Are you ready to take action on this?"
           confirmText="Convert"
-          confirmButtonClass="bg-green-600 hover:bg-green-700 text-white"
+          variant="info"
         />
       </div>
     </AppLayout>

@@ -47,24 +47,25 @@ export function EmailVerificationBanner() {
       await sendEmailVerification(auth.currentUser);
       setResent(true);
       setTimeout(() => setResent(false), 5000); // Hide success message after 5 seconds
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Log user-friendly message instead of raw Firebase error
-      if (error.code === 'auth/too-many-requests') {
+      if (error instanceof Error && 'code' in error && error.code === 'auth/too-many-requests') {
         // Don't log rate limiting as an error - it's expected behavior
         console.log('Email verification rate limit reached - user will see countdown timer');
         setRateLimited(true);
         setCooldownSeconds(120); // 2 minutes countdown
         setError('Too many verification emails sent. Please wait before trying again.');
-      } else {
-        // Only log unexpected errors in development
-        if (process.env.NODE_ENV === 'development') {
-          console.error('Unexpected error sending verification email:', error);
-        } else {
-          console.log('Email verification failed:', error.code || 'Unknown error');
+              } else {
+          // Only log unexpected errors in development
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Unexpected error sending verification email:', error);
+          } else {
+            const errorCode = error instanceof Error && 'code' in error ? (error as { code: string }).code : 'Unknown error';
+            console.log('Email verification failed:', errorCode);
+          }
+          setError('Failed to send verification email. Please try again later.');
+          setTimeout(() => setError(''), 5000);
         }
-        setError('Failed to send verification email. Please try again later.');
-        setTimeout(() => setError(''), 5000);
-      }
     } finally {
       setResending(false);
     }
@@ -74,7 +75,7 @@ export function EmailVerificationBanner() {
     setChecking(true);
     try {
       await refreshUser();
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Log user-friendly message for status check errors
       if (process.env.NODE_ENV === 'development') {
         console.error('Error refreshing user status:', error);

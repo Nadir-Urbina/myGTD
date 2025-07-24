@@ -61,8 +61,8 @@ export default function LoginPage() {
     try {
       await signIn(email, password);
       // Redirect will be handled by useEffect when auth state updates
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'An error occurred');
       setLoading(false);
     }
   };
@@ -79,8 +79,8 @@ export default function LoginPage() {
     try {
       await sendSignInLink(email);
       setEmailLinkSent(true);
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setEmailLinkLoading(false);
     }
@@ -113,7 +113,7 @@ export default function LoginPage() {
                       Check your email!
                     </p>
                     <p className="mt-1 text-sm text-green-700">
-                      We've sent a sign-in link to {email}. Click the link in your email to sign in.
+                      We&apos;ve sent a sign-in link to {email}. Click the link in your email to sign in.
                     </p>
                   </div>
                 </div>
@@ -269,7 +269,7 @@ export default function LoginPage() {
 
               <div className="mt-6 text-center">
                 <p className="text-sm text-gray-600">
-                  Don't have an account?{' '}
+                  Don&apos;t have an account?{' '}
                   <Link href="/auth/register" className="font-medium text-blue-600 hover:text-blue-500">
                     Sign up
                   </Link>

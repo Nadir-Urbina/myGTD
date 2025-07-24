@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
-import { Mail, CheckCircle, AlertCircle } from 'lucide-react';
+import { CheckCircle, AlertCircle } from 'lucide-react';
 import { applyActionCode } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
@@ -16,7 +15,6 @@ export default function VerifyEmailPage() {
   
   const { user, signInWithLink } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     const handleEmailVerification = async () => {
@@ -57,8 +55,8 @@ export default function VerifyEmailPage() {
           throw new Error('Invalid verification link');
         }
         
-              } catch (error: any) {
-        setError(error.message);
+              } catch (error: unknown) {
+        setError(error instanceof Error ? error.message : 'An error occurred');
       } finally {
         setLoading(false);
       }

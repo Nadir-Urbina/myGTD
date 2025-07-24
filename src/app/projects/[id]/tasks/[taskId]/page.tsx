@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { 
-  ArrowLeft, Save, Trash2, ArrowRight, Clock, CheckCircle, 
+  ArrowLeft, Save, Trash2, ArrowRight, CheckCircle, 
   Play, Square, Ban, User, Calendar
 } from 'lucide-react';
 import { Project, ProjectTask, ProjectTaskStatus } from '@/types';

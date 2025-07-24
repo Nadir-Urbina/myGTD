@@ -224,11 +224,11 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        {/* Today's Schedule */}
+        {/* Today&apos;s Schedule */}
         {todaysActions.length > 0 && (
           <div className="bg-blue-50 rounded-lg border border-blue-200 p-4 md:p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-blue-900">Today's Schedule</h2>
+              <h2 className="text-lg font-semibold text-blue-900">Today&apos;s Schedule</h2>
               <span className="text-sm text-blue-600">
                 {todaysActions.length} action{todaysActions.length !== 1 ? 's' : ''}
               </span>

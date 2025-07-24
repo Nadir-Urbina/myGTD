@@ -94,7 +94,7 @@ export default function InboxPage() {
         <div className="mb-6 md:mb-8">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Inbox</h1>
           <p className="text-gray-600 text-sm md:text-base">
-            Capture everything that has your attention. We'll help you organize it later.
+            Capture everything that has your attention. We&apos;ll help you organize it later.
           </p>
         </div>
 

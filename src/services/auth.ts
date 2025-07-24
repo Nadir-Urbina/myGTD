@@ -45,8 +45,9 @@ export class AuthService {
         displayName: user.displayName,
         emailVerified: user.emailVerified
       };
-    } catch (error: any) {
-      throw new Error(this.getErrorMessage(error.code));
+    } catch (error: unknown) {
+      const errorCode = error instanceof Error && 'code' in error ? (error as { code: string }).code : 'unknown';
+      throw new Error(this.getErrorMessage(errorCode));
     }
   }
 
@@ -62,8 +63,9 @@ export class AuthService {
         displayName: user.displayName,
         emailVerified: user.emailVerified
       };
-    } catch (error: any) {
-      throw new Error(this.getErrorMessage(error.code));
+    } catch (error: unknown) {
+      const errorCode = error instanceof Error && 'code' in error ? (error as { code: string }).code : 'unknown';
+      throw new Error(this.getErrorMessage(errorCode));
     }
   }
 
@@ -79,8 +81,9 @@ export class AuthService {
       
       // Save email locally to complete sign-in later
       localStorage.setItem('emailForSignIn', email);
-    } catch (error: any) {
-      throw new Error(this.getErrorMessage(error.code));
+    } catch (error: unknown) {
+      const errorCode = error instanceof Error && 'code' in error ? (error as { code: string }).code : 'unknown';
+      throw new Error(this.getErrorMessage(errorCode));
     }
   }
 
@@ -111,8 +114,9 @@ export class AuthService {
         displayName: user.displayName,
         emailVerified: user.emailVerified
       };
-    } catch (error: any) {
-      throw new Error(this.getErrorMessage(error.code));
+    } catch (error: unknown) {
+      const errorCode = error instanceof Error && 'code' in error ? (error as { code: string }).code : 'unknown';
+      throw new Error(this.getErrorMessage(errorCode));
     }
   }
 
@@ -120,8 +124,9 @@ export class AuthService {
   static async resetPassword(email: string): Promise<void> {
     try {
       await sendPasswordResetEmail(auth, email);
-    } catch (error: any) {
-      throw new Error(this.getErrorMessage(error.code));
+    } catch (error: unknown) {
+      const errorCode = error instanceof Error && 'code' in error ? (error as { code: string }).code : 'unknown';
+      throw new Error(this.getErrorMessage(errorCode));
     }
   }
 
@@ -129,8 +134,9 @@ export class AuthService {
   static async signOut(): Promise<void> {
     try {
       await signOut(auth);
-    } catch (error: any) {
-      throw new Error(this.getErrorMessage(error.code));
+    } catch (error: unknown) {
+      const errorCode = error instanceof Error && 'code' in error ? (error as { code: string }).code : 'unknown';
+      throw new Error(this.getErrorMessage(errorCode));
     }
   }
 

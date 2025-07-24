@@ -6,7 +6,7 @@ import { AppLayout } from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
-import { Plus, Cloud, Archive, Lightbulb, Clock, Star, Trash2, ArrowRight } from 'lucide-react';
+import { Plus, Cloud, Archive, Lightbulb, Clock, Trash2, ArrowRight } from 'lucide-react';
 import { MaybeSomedayItem, MaybeSomedayStatus } from '@/types';
 import { maybeSomedayService } from '@/services/firebase';
 import { formatDate } from '@/lib/utils';
@@ -302,12 +302,12 @@ export default function MaybeSomedayPage() {
 
         <ConfirmationDialog
           isOpen={deleteConfirmation.isOpen}
-          onClose={() => setDeleteConfirmation({ isOpen: false, itemId: null })}
+          onCancel={() => setDeleteConfirmation({ isOpen: false, itemId: null })}
           onConfirm={confirmDelete}
           title="Delete Item"
           message="Are you sure you want to delete this maybe/someday item? This action cannot be undone."
           confirmText="Delete"
-          confirmButtonClass="bg-red-600 hover:bg-red-700 text-white"
+          variant="danger"
         />
       </div>
     </AppLayout>

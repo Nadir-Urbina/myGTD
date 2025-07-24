@@ -30,8 +30,8 @@ export default function ResetPasswordPage() {
     try {
       await resetPassword(email);
       setEmailSent(true);
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -60,7 +60,7 @@ export default function ResetPasswordPage() {
                       Reset email sent!
                     </p>
                     <p className="mt-1 text-sm text-green-700">
-                      We've sent a password reset email to {email}. Check your email and follow the instructions to reset your password.
+                      We&apos;ve sent a password reset email to {email}. Check your email and follow the instructions to reset your password.
                     </p>
                   </div>
                 </div>
@@ -102,7 +102,7 @@ export default function ResetPasswordPage() {
 
                 <div>
                   <p className="text-sm text-gray-600 mb-4">
-                    Enter your email address and we'll send you a link to reset your password.
+                    Enter your email address and we&apos;ll send you a link to reset your password.
                   </p>
                 </div>
 

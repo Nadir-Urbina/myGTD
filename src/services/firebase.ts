@@ -15,13 +15,23 @@ import {
 import { db } from '@/lib/firebase';
 import { InboxItem, NextAction, Project, ProjectTask, NextActionStatus, ProjectStatus, ProjectTaskStatus, MaybeSomedayItem, MaybeSomedayStatus } from '@/types';
 
+// Firestore timestamp interface
+interface FirestoreTimestamp {
+  toDate(): Date;
+}
+
+// Type for Firestore document data
+type FirestoreDocumentData = {
+  [key: string]: unknown;
+};
+
 // Helper function to convert Firestore timestamps to Date objects
-const convertTimestamps = (data: any) => ({
+const convertTimestamps = (data: Record<string, unknown>) => ({
   ...data,
-  createdAt: data.createdAt?.toDate() || new Date(),
-  updatedAt: data.updatedAt?.toDate() || new Date(),
-  scheduledDate: data.scheduledDate?.toDate(),
-  completedDate: data.completedDate?.toDate(),
+  createdAt: (data.createdAt as FirestoreTimestamp)?.toDate() || new Date(),
+  updatedAt: (data.updatedAt as FirestoreTimestamp)?.toDate() || new Date(),
+  scheduledDate: (data.scheduledDate as FirestoreTimestamp)?.toDate(),
+  completedDate: (data.completedDate as FirestoreTimestamp)?.toDate(),
 });
 
 // Inbox Operations
@@ -36,7 +46,7 @@ export const inboxService = {
     return snapshot.docs.map(doc => ({
       id: doc.id,
       ...convertTimestamps(doc.data())
-    })) as InboxItem[];
+    } as unknown)) as InboxItem[];
   },
 
   // Subscribe to inbox changes
@@ -49,7 +59,7 @@ export const inboxService = {
       const items = snapshot.docs.map(doc => ({
         id: doc.id,
         ...convertTimestamps(doc.data())
-      })) as InboxItem[];
+      } as unknown)) as InboxItem[];
       callback(items);
     });
   },
@@ -59,7 +69,7 @@ export const inboxService = {
     const now = Timestamp.now();
     
     // Prepare document data, filtering out undefined values
-    const docData: any = {
+    const docData: FirestoreDocumentData = {
       title: item.title,
       userId,
       processed: false,
@@ -82,7 +92,7 @@ export const inboxService = {
   // Update inbox item
   async updateInboxItem(userId: string, itemId: string, updates: Partial<InboxItem>): Promise<void> {
     const docRef = doc(db, `users/${userId}/inbox`, itemId);
-    const updateData: any = {
+    const updateData: FirestoreDocumentData = {
       updatedAt: Timestamp.now(),
     };
     
@@ -115,7 +125,7 @@ export const nextActionsService = {
     return snapshot.docs.map(doc => ({
       id: doc.id,
       ...convertTimestamps(doc.data())
-    })) as NextAction[];
+    } as unknown)) as NextAction[];
   },
 
   // Subscribe to next actions changes
@@ -128,7 +138,7 @@ export const nextActionsService = {
       const actions = snapshot.docs.map(doc => ({
         id: doc.id,
         ...convertTimestamps(doc.data())
-      })) as NextAction[];
+      } as unknown)) as NextAction[];
       callback(actions);
     });
   },
@@ -138,7 +148,7 @@ export const nextActionsService = {
     const now = Timestamp.now();
     
     // Prepare document data, filtering out undefined values
-    const docData: any = {
+    const docData: FirestoreDocumentData = {
       title: action.title,
       userId,
       status: action.status || NextActionStatus.QUEUED,
@@ -185,7 +195,7 @@ export const nextActionsService = {
   // Update next action
   async updateNextAction(userId: string, actionId: string, updates: Partial<NextAction>): Promise<void> {
     const docRef = doc(db, `users/${userId}/nextActions`, actionId);
-    const updateData: any = {
+    const updateData: FirestoreDocumentData = {
       updatedAt: Timestamp.now(),
     };
     
@@ -209,7 +219,7 @@ export const nextActionsService = {
       // Get the updated next action to sync with project
       const updatedAction = await getDocs(query(collection(db, `users/${userId}/nextActions`), where('__name__', '==', actionId)));
       if (!updatedAction.empty) {
-        const actionData = { id: actionId, ...convertTimestamps(updatedAction.docs[0].data()) } as NextAction;
+        const actionData = { id: actionId, ...convertTimestamps(updatedAction.docs[0].data()) } as unknown as NextAction;
         await projectsService.syncTaskFromNextAction(userId, actionData);
       }
     }
@@ -230,7 +240,7 @@ export const nextActionsService = {
     const batch = writeBatch(db);
     
     // Prepare next action data, filtering out undefined values
-    const nextActionDoc: any = {
+    const nextActionDoc: FirestoreDocumentData = {
       title: inboxItem.title,
       userId,
       status: NextActionStatus.QUEUED,
@@ -286,7 +296,7 @@ export const projectsService = {
     return snapshot.docs.map(doc => ({
       id: doc.id,
       ...convertTimestamps(doc.data())
-    })) as Project[];
+    } as unknown)) as Project[];
   },
 
   // Subscribe to projects changes
@@ -299,7 +309,7 @@ export const projectsService = {
       const projects = snapshot.docs.map(doc => ({
         id: doc.id,
         ...convertTimestamps(doc.data())
-      })) as Project[];
+      } as unknown)) as Project[];
       callback(projects);
     });
   },
@@ -308,7 +318,7 @@ export const projectsService = {
   async addProject(userId: string, project: Omit<Project, 'id' | 'userId' | 'createdAt' | 'updatedAt'>): Promise<string> {
     const now = Timestamp.now();
     
-    const docData: any = {
+    const docData: FirestoreDocumentData = {
       title: project.title,
       userId,
       status: project.status || ProjectStatus.QUEUED,
@@ -335,7 +345,7 @@ export const projectsService = {
   // Update project
   async updateProject(userId: string, projectId: string, updates: Partial<Project>): Promise<void> {
     const docRef = doc(db, `users/${userId}/projects`, projectId);
-    const updateData: any = {
+    const updateData: FirestoreDocumentData = {
       updatedAt: Timestamp.now(),
     };
     
@@ -442,7 +452,7 @@ export const projectsService = {
       if (task) {
         // Create next action
         const nextActionRef = doc(collection(db, `users/${userId}/nextActions`));
-        const nextActionDoc: any = {
+        const nextActionDoc: FirestoreDocumentData = {
           title: task.title,
           userId,
           status: NextActionStatus.QUEUED,
@@ -537,7 +547,7 @@ export const maybeSomedayService = {
     return snapshot.docs.map(doc => ({
       id: doc.id,
       ...convertTimestamps(doc.data())
-    })) as MaybeSomedayItem[];
+    } as unknown)) as MaybeSomedayItem[];
   },
 
   // Subscribe to maybe/someday items changes
@@ -551,7 +561,7 @@ export const maybeSomedayService = {
       const items = snapshot.docs.map(doc => ({
         id: doc.id,
         ...convertTimestamps(doc.data())
-      })) as MaybeSomedayItem[];
+      } as unknown)) as MaybeSomedayItem[];
       callback(items);
     });
   },
@@ -561,7 +571,7 @@ export const maybeSomedayService = {
     const now = Timestamp.now();
     
     // Prepare document data, filtering out undefined values
-    const docData: any = {
+    const docData: FirestoreDocumentData = {
       title: item.title,
       userId,
       status: item.status || MaybeSomedayStatus.MAYBE,
@@ -595,7 +605,7 @@ export const maybeSomedayService = {
     const itemRef = doc(db, `users/${userId}/maybeSomeday`, itemId);
     
     // Prepare update data, filtering out undefined values
-    const updateData: any = {
+    const updateData: FirestoreDocumentData = {
       updatedAt: Timestamp.now(),
     };
     
@@ -628,7 +638,7 @@ export const maybeSomedayService = {
     const batch = writeBatch(db);
     
     // Prepare maybe/someday data, filtering out undefined values
-    const maybeSomedayDoc: any = {
+    const maybeSomedayDoc: FirestoreDocumentData = {
       title: inboxItem.title,
       userId,
       status: MaybeSomedayStatus.MAYBE,
@@ -678,7 +688,7 @@ export const maybeSomedayService = {
     const batch = writeBatch(db);
     
     // Prepare next action data
-    const nextActionDoc: any = {
+    const nextActionDoc: FirestoreDocumentData = {
       title: maybeSomedayItem.title,
       userId,
       status: NextActionStatus.QUEUED,

@@ -68,8 +68,8 @@ export default function RegisterPage() {
     try {
       await signUp(formData.email, formData.password, formData.displayName);
       setSuccess(true);
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -98,7 +98,7 @@ export default function RegisterPage() {
                       Check your email!
                     </p>
                     <p className="mt-1 text-sm text-green-700">
-                      We've sent a verification email to {formData.email}. Please verify your email before signing in.
+                      We&apos;ve sent a verification email to {formData.email}. Please verify your email before signing in.
                     </p>
                   </div>
                 </div>
