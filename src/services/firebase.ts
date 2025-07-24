@@ -11,6 +11,9 @@ import {
   onSnapshot,
   Timestamp,
   writeBatch,
+  UpdateData,
+  WithFieldValue,
+  DocumentData
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { InboxItem, NextAction, Project, ProjectTask, NextActionStatus, ProjectStatus, ProjectTaskStatus, MaybeSomedayItem, MaybeSomedayStatus } from '@/types';
@@ -20,10 +23,9 @@ interface FirestoreTimestamp {
   toDate(): Date;
 }
 
-// Type for Firestore document data
-type FirestoreDocumentData = {
-  [key: string]: unknown;
-};
+// Type aliases for Firestore operations
+type FirestoreCreateData = WithFieldValue<DocumentData>;
+type FirestoreUpdateData = UpdateData<DocumentData>;
 
 // Helper function to convert Firestore timestamps to Date objects
 const convertTimestamps = (data: Record<string, unknown>) => ({
@@ -69,7 +71,7 @@ export const inboxService = {
     const now = Timestamp.now();
     
     // Prepare document data, filtering out undefined values
-    const docData: FirestoreDocumentData = {
+    const docData: FirestoreCreateData = {
       title: item.title,
       userId,
       processed: false,
@@ -92,7 +94,7 @@ export const inboxService = {
   // Update inbox item
   async updateInboxItem(userId: string, itemId: string, updates: Partial<InboxItem>): Promise<void> {
     const docRef = doc(db, `users/${userId}/inbox`, itemId);
-    const updateData: FirestoreDocumentData = {
+    const updateData: FirestoreUpdateData = {
       updatedAt: Timestamp.now(),
     };
     
@@ -148,7 +150,7 @@ export const nextActionsService = {
     const now = Timestamp.now();
     
     // Prepare document data, filtering out undefined values
-    const docData: FirestoreDocumentData = {
+    const docData: FirestoreCreateData = {
       title: action.title,
       userId,
       status: action.status || NextActionStatus.QUEUED,
@@ -195,7 +197,7 @@ export const nextActionsService = {
   // Update next action
   async updateNextAction(userId: string, actionId: string, updates: Partial<NextAction>): Promise<void> {
     const docRef = doc(db, `users/${userId}/nextActions`, actionId);
-    const updateData: FirestoreDocumentData = {
+    const updateData: FirestoreUpdateData = {
       updatedAt: Timestamp.now(),
     };
     
@@ -240,7 +242,7 @@ export const nextActionsService = {
     const batch = writeBatch(db);
     
     // Prepare next action data, filtering out undefined values
-    const nextActionDoc: FirestoreDocumentData = {
+    const nextActionDoc: FirestoreCreateData = {
       title: inboxItem.title,
       userId,
       status: NextActionStatus.QUEUED,
@@ -318,7 +320,7 @@ export const projectsService = {
   async addProject(userId: string, project: Omit<Project, 'id' | 'userId' | 'createdAt' | 'updatedAt'>): Promise<string> {
     const now = Timestamp.now();
     
-    const docData: FirestoreDocumentData = {
+    const docData: FirestoreCreateData = {
       title: project.title,
       userId,
       status: project.status || ProjectStatus.QUEUED,
@@ -345,7 +347,7 @@ export const projectsService = {
   // Update project
   async updateProject(userId: string, projectId: string, updates: Partial<Project>): Promise<void> {
     const docRef = doc(db, `users/${userId}/projects`, projectId);
-    const updateData: FirestoreDocumentData = {
+    const updateData: FirestoreUpdateData = {
       updatedAt: Timestamp.now(),
     };
     
@@ -452,7 +454,7 @@ export const projectsService = {
       if (task) {
         // Create next action
         const nextActionRef = doc(collection(db, `users/${userId}/nextActions`));
-        const nextActionDoc: FirestoreDocumentData = {
+        const nextActionDoc: FirestoreCreateData = {
           title: task.title,
           userId,
           status: NextActionStatus.QUEUED,
@@ -571,7 +573,7 @@ export const maybeSomedayService = {
     const now = Timestamp.now();
     
     // Prepare document data, filtering out undefined values
-    const docData: FirestoreDocumentData = {
+    const docData: FirestoreCreateData = {
       title: item.title,
       userId,
       status: item.status || MaybeSomedayStatus.MAYBE,
@@ -605,7 +607,7 @@ export const maybeSomedayService = {
     const itemRef = doc(db, `users/${userId}/maybeSomeday`, itemId);
     
     // Prepare update data, filtering out undefined values
-    const updateData: FirestoreDocumentData = {
+    const updateData: FirestoreUpdateData = {
       updatedAt: Timestamp.now(),
     };
     
@@ -638,7 +640,7 @@ export const maybeSomedayService = {
     const batch = writeBatch(db);
     
     // Prepare maybe/someday data, filtering out undefined values
-    const maybeSomedayDoc: FirestoreDocumentData = {
+    const maybeSomedayDoc: FirestoreCreateData = {
       title: inboxItem.title,
       userId,
       status: MaybeSomedayStatus.MAYBE,
@@ -688,7 +690,7 @@ export const maybeSomedayService = {
     const batch = writeBatch(db);
     
     // Prepare next action data
-    const nextActionDoc: FirestoreDocumentData = {
+    const nextActionDoc: FirestoreCreateData = {
       title: maybeSomedayItem.title,
       userId,
       status: NextActionStatus.QUEUED,
