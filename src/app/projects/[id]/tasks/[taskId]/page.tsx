@@ -146,7 +146,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
   };
 
   const confirmDelete = async () => {
-    if (!project || !task) return;
+    if (!project || !task || !user) return;
 
     try {
       await projectsService.deleteTaskFromProject(user.uid, project.id, task.id);
