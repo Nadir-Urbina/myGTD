@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
+import { useLanguage } from '@/contexts/language-context';
 import { AppLayout } from '@/components/app-layout';
+import { AITaskCard } from '@/components/ui/ai-task-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
@@ -37,6 +39,7 @@ const statusConfig = {
 
 export default function NextActionsPage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [nextActions, setNextActions] = useState<NextAction[]>([]);
   const [newActionTitle, setNewActionTitle] = useState('');
   const [loading, setLoading] = useState(true);
@@ -193,37 +196,44 @@ export default function NextActionsPage() {
 
                   {actions.length > 0 ? (
                     <div className="bg-white rounded-lg shadow-sm border border-gray-200 divide-y">
-                                             {actions.map((action) => (
-                         <div key={action.id} className="p-4 hover:bg-gray-50 transition-colors">
-                           <div className="flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-0">
-                             <div 
-                               className="flex-1 min-w-0 cursor-pointer"
-                               onClick={() => window.location.href = `/next-actions/${action.id}`}
-                             >
-                               <h3 className={cn(
-                                 "font-medium truncate",
-                                 action.status === NextActionStatus.DONE 
-                                   ? "text-gray-500 line-through" 
-                                   : "text-gray-900"
-                               )}>
-                                 {action.title}
-                               </h3>
-                              <div className="flex flex-wrap items-center text-sm text-gray-500 mt-1 gap-2 md:gap-4">
-                                <div className="flex items-center">
-                                  <Clock className="h-3 w-3 mr-1" />
-                                  {formatDate(action.createdAt)}
-                                </div>
-                                {action.context && (
-                                  <div className="bg-gray-100 px-2 py-1 rounded text-xs">
-                                    {action.context}
-                                  </div>
-                                )}
-                                {action.estimatedDuration && (
-                                  <div className="text-xs">
-                                    ~{action.estimatedDuration}min
-                                  </div>
-                                )}
-                              </div>
+                                                                   {actions.map((action) => (
+                        <AITaskCard
+                          key={action.id}
+                          taskTitle={action.title}
+                          taskDescription={action.description}
+                          className="relative"
+                          enableAI={action.status !== NextActionStatus.DONE}
+                        >
+                          <div className="p-4 hover:bg-gray-50 transition-colors">
+                            <div className="flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-0">
+                              <div 
+                                className="flex-1 min-w-0 cursor-pointer"
+                                onClick={() => window.location.href = `/next-actions/${action.id}`}
+                              >
+                                <h3 className={cn(
+                                  "font-medium truncate",
+                                  action.status === NextActionStatus.DONE 
+                                    ? "text-gray-500 line-through" 
+                                    : "text-gray-900"
+                                )}>
+                                  {action.title}
+                                </h3>
+                               <div className="flex flex-wrap items-center text-sm text-gray-500 mt-1 gap-2 md:gap-4">
+                                 <div className="flex items-center">
+                                   <Clock className="h-3 w-3 mr-1" />
+                                   {formatDate(action.createdAt)}
+                                 </div>
+                                 {action.context && (
+                                   <div className="bg-gray-100 px-2 py-1 rounded text-xs">
+                                     {action.context}
+                                   </div>
+                                 )}
+                                 {action.estimatedDuration && (
+                                   <div className="text-xs">
+                                     ~{action.estimatedDuration}min
+                                   </div>
+                                 )}
+                               </div>
                               {action.scheduledDate && (
                                 <div className="flex items-center text-sm text-blue-600 mt-1">
                                   <Calendar className="h-3 w-3 mr-1" />
@@ -260,6 +270,7 @@ export default function NextActionsPage() {
                             </div>
                           </div>
                         </div>
+                        </AITaskCard>
                       ))}
                     </div>
                   ) : (

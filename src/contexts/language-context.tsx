@@ -30,6 +30,8 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.projects.description': 'Multi-step initiatives',
     'nav.maybeSomeday': 'Maybe/Someday',
     'nav.maybeSomeday.description': 'Ideas for the future',
+    'nav.settings': 'Settings',
+    'nav.settings.description': 'App preferences',
     'nav.signOut': 'Sign out',
     
     // Common
@@ -62,6 +64,31 @@ const translations: Record<Language, Record<string, string>> = {
     'language.toggle': 'Switch language',
     'language.english': 'English',
     'language.spanish': 'Spanish',
+
+    // AI Features
+    'ai.twoMinuteRule.candidate': '2-Minute Rule Candidate',
+    'ai.twoMinuteRule.tooltip': 'AI suggests this task might take 2 minutes or less',
+    'ai.twoMinuteRule.confidence': 'Confidence',
+    'ai.twoMinuteRule.estimatedTime': 'Estimated time',
+    'ai.twoMinuteRule.reasoning': 'AI reasoning',
+    'ai.analyzing': 'AI analyzing...',
+    'ai.analysisComplete': 'Analysis complete',
+    'ai.settings.title': 'AI Features',
+    'ai.settings.enable': 'Enable AI task analysis',
+    'ai.settings.description': 'Use AI to identify 2-minute rule candidates',
+    
+    // Settings Page
+    'settings.title': 'Settings',
+    'settings.subtitle': 'Customize your MyGTD experience and preferences.',
+    'settings.language.title': 'Language & Region',
+    'settings.language.subtitle': 'Choose your preferred language',
+    'settings.notifications.title': 'Notifications',
+    'settings.notifications.subtitle': 'Manage your notification preferences',
+    'settings.notifications.email': 'Email Notifications',
+    'settings.notifications.emailDesc': 'Receive updates about your tasks',
+    'settings.ai.subtitle': 'Intelligent task analysis and automation',
+    'settings.ai.activeStatus': 'AI analysis is active',
+    'settings.ai.activeDesc': 'Your tasks will be automatically analyzed to identify 2-minute rule candidates.',
 
     // Landing Page
     'landing.nav.subtitle': 'Getting Things Done',
@@ -188,6 +215,8 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.projects.description': 'Iniciativas de múltiples pasos',
     'nav.maybeSomeday': 'Tal vez/Algún día',
     'nav.maybeSomeday.description': 'Ideas para el futuro',
+    'nav.settings': 'Configuración',
+    'nav.settings.description': 'Preferencias de la app',
     'nav.signOut': 'Cerrar sesión',
     
     // Common
@@ -220,6 +249,31 @@ const translations: Record<Language, Record<string, string>> = {
     'language.toggle': 'Cambiar idioma',
     'language.english': 'Inglés',
     'language.spanish': 'Español',
+
+    // AI Features
+    'ai.twoMinuteRule.candidate': 'Candidato de Regla de 2 Minutos',
+    'ai.twoMinuteRule.tooltip': 'IA sugiere que esta tarea podría tomar 2 minutos o menos',
+    'ai.twoMinuteRule.confidence': 'Confianza',
+    'ai.twoMinuteRule.estimatedTime': 'Tiempo estimado',
+    'ai.twoMinuteRule.reasoning': 'Razonamiento de IA',
+    'ai.analyzing': 'IA analizando...',
+    'ai.analysisComplete': 'Análisis completo',
+    'ai.settings.title': 'Funciones de IA',
+    'ai.settings.enable': 'Habilitar análisis de tareas con IA',
+    'ai.settings.description': 'Usar IA para identificar candidatos de la regla de 2 minutos',
+    
+    // Settings Page
+    'settings.title': 'Configuración',
+    'settings.subtitle': 'Personaliza tu experiencia MyGTD y preferencias.',
+    'settings.language.title': 'Idioma y Región',
+    'settings.language.subtitle': 'Elige tu idioma preferido',
+    'settings.notifications.title': 'Notificaciones',
+    'settings.notifications.subtitle': 'Gestiona tus preferencias de notificación',
+    'settings.notifications.email': 'Notificaciones por Email',
+    'settings.notifications.emailDesc': 'Recibe actualizaciones sobre tus tareas',
+    'settings.ai.subtitle': 'Análisis inteligente de tareas y automatización',
+    'settings.ai.activeStatus': 'Análisis de IA está activo',
+    'settings.ai.activeDesc': 'Tus tareas serán analizadas automáticamente para identificar candidatos de la regla de 2 minutos.',
 
     // Landing Page
     'landing.nav.subtitle': 'Organización de Tareas',

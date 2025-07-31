@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { useLanguage } from '@/contexts/language-context';
 import { cn } from '@/lib/utils';
-import { Inbox, CheckSquare, Calendar, FolderOpen, Menu, X, User, LogOut, ChevronDown, Cloud } from 'lucide-react';
+import { Inbox, CheckSquare, Calendar, FolderOpen, Menu, X, User, LogOut, ChevronDown, Cloud, Settings } from 'lucide-react';
 import { LanguageToggle } from '@/components/ui/language-toggle';
 import { Logo, LogoMark } from '@/components/ui/logo';
 
@@ -47,6 +47,12 @@ export function Navigation() {
       icon: Cloud,
       description: t('nav.maybeSomeday.description'),
     },
+    {
+      name: t('nav.settings'),
+      href: '/settings',
+      icon: Settings,
+      description: t('nav.settings.description'),
+    },
   ];
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -85,11 +91,10 @@ export function Navigation() {
     <>
       {/* Mobile Header */}
       <div className="lg:hidden bg-white border-b border-gray-200 p-4 fixed top-0 left-0 right-0 z-40">
-        <div className="flex items-center justify-between">
-          <Logo size="sm" showSubtitle={false} />
-          <div className="flex items-center gap-2">
-            <LanguageToggle />
-            <div ref={mobileUserMenuRef} className="relative">
+                  <div className="flex items-center justify-between">
+            <Logo size="sm" showSubtitle={false} />
+            <div className="flex items-center gap-2">
+              <div ref={mobileUserMenuRef} className="relative">
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                 className="p-1 rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100"
@@ -126,6 +131,11 @@ export function Navigation() {
               )}
             </button>
           </div>
+          
+          {/* Language Toggle Row - Mobile */}
+          <div className="flex justify-center py-2 border-t border-gray-100">
+            <LanguageToggle />
+          </div>
         </div>
       </div>
 
@@ -140,8 +150,13 @@ export function Navigation() {
       {/* Desktop Sidebar */}
       <nav className="hidden lg:flex bg-white border-r border-gray-200 w-64 h-screen fixed left-0 top-0 overflow-y-auto flex-col">
         <div className="p-6 flex-1">
-          <div className="flex items-center justify-between mb-8">
+          {/* Logo Row */}
+          <div className="mb-6">
             <Logo size="md" showSubtitle={false} />
+          </div>
+          
+          {/* Language Toggle Row */}
+          <div className="flex justify-center mb-8 pb-4 border-b border-gray-100">
             <LanguageToggle />
           </div>
           
@@ -212,7 +227,7 @@ export function Navigation() {
         "lg:hidden fixed top-0 left-0 z-40 w-64 h-full bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out",
         isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
       )}>
-        <div className="p-6 pt-20">
+        <div className="p-6 pt-24">
           <div className="space-y-2">
             {navigationItems.map((item) => {
               const Icon = item.icon;

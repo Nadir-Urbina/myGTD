@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
 import { useLanguage } from '@/contexts/language-context';
 import { AppLayout } from '@/components/app-layout';
+import { AITaskCard } from '@/components/ui/ai-task-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
@@ -131,39 +132,46 @@ export default function InboxPage() {
                 </h2>
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 divide-y">
                   {unprocessedItems.map((item) => (
-                    <div key={item.id} className="p-4 hover:bg-gray-50 transition-colors">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-0">
-                        <Link href={`/inbox/${item.id}`} className="flex-1 min-w-0">
-                          <div className="cursor-pointer">
-                            <h3 className="font-medium text-gray-900 truncate hover:text-blue-600 transition-colors">
-                              {item.title}
-                            </h3>
-                            <div className="flex items-center text-sm text-gray-500 mt-1">
-                              <Clock className="h-3 w-3 mr-1" />
-                              {formatDate(item.createdAt)}
+                    <AITaskCard
+                      key={item.id}
+                      taskTitle={item.title}
+                      taskDescription={item.description}
+                      className="relative"
+                    >
+                      <div className="p-4 hover:bg-gray-50 transition-colors">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-0">
+                          <Link href={`/inbox/${item.id}`} className="flex-1 min-w-0">
+                            <div className="cursor-pointer">
+                              <h3 className="font-medium text-gray-900 truncate hover:text-blue-600 transition-colors">
+                                {item.title}
+                              </h3>
+                              <div className="flex items-center text-sm text-gray-500 mt-1">
+                                <Clock className="h-3 w-3 mr-1" />
+                                {formatDate(item.createdAt)}
+                              </div>
                             </div>
+                          </Link>
+                          <div className="flex items-center gap-2 sm:ml-4">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleMarkAsProcessed(item)}
+                              className="flex-1 sm:flex-none"
+                            >
+                              {t('common.process')}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => window.location.href = `/inbox/${item.id}`}
+                              className="flex-shrink-0"
+                            >
+                              <ChevronRight className="h-4 w-4" />
+                            </Button>
                           </div>
-                        </Link>
-                        <div className="flex items-center gap-2 sm:ml-4">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleMarkAsProcessed(item)}
-                            className="flex-1 sm:flex-none"
-                          >
-                            {t('common.process')}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => window.location.href = `/inbox/${item.id}`}
-                            className="flex-shrink-0"
-                          >
-                            <ChevronRight className="h-4 w-4" />
-                          </Button>
                         </div>
                       </div>
-                    </div>
+                    </AITaskCard>
                   ))}
                 </div>
               </div>
