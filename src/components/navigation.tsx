@@ -4,46 +4,50 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
+import { useLanguage } from '@/contexts/language-context';
 import { cn } from '@/lib/utils';
 import { Inbox, CheckSquare, Calendar, FolderOpen, Menu, X, User, LogOut, ChevronDown, Cloud } from 'lucide-react';
-
-const navigationItems = [
-  {
-    name: 'Inbox',
-    href: '/inbox',
-    icon: Inbox,
-    description: 'Capture new tasks and ideas',
-  },
-  {
-    name: 'Next Actions',
-    href: '/next-actions',
-    icon: CheckSquare,
-    description: 'Your actionable tasks',
-  },
-  {
-    name: 'Calendar',
-    href: '/calendar',
-    icon: Calendar,
-    description: 'Scheduled actions',
-  },
-  {
-    name: 'Projects',
-    href: '/projects',
-    icon: FolderOpen,
-    description: 'Multi-step initiatives',
-  },
-  {
-    name: 'Maybe/Someday',
-    href: '/maybe-someday',
-    icon: Cloud,
-    description: 'Ideas for the future',
-  },
-];
+import { LanguageToggle } from '@/components/ui/language-toggle';
+import { Logo, LogoMark } from '@/components/ui/logo';
 
 export function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, signOut } = useAuth();
+  const { t } = useLanguage();
+
+  const navigationItems = [
+    {
+      name: t('nav.inbox'),
+      href: '/inbox',
+      icon: Inbox,
+      description: t('nav.inbox.description'),
+    },
+    {
+      name: t('nav.nextActions'),
+      href: '/next-actions',
+      icon: CheckSquare,
+      description: t('nav.nextActions.description'),
+    },
+    {
+      name: t('nav.calendar'),
+      href: '/calendar',
+      icon: Calendar,
+      description: t('nav.calendar.description'),
+    },
+    {
+      name: t('nav.projects'),
+      href: '/projects',
+      icon: FolderOpen,
+      description: t('nav.projects.description'),
+    },
+    {
+      name: t('nav.maybeSomeday'),
+      href: '/maybe-someday',
+      icon: Cloud,
+      description: t('nav.maybeSomeday.description'),
+    },
+  ];
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -82,8 +86,9 @@ export function Navigation() {
       {/* Mobile Header */}
       <div className="lg:hidden bg-white border-b border-gray-200 p-4 fixed top-0 left-0 right-0 z-40">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900">MyGTD</h1>
+          <Logo size="sm" showSubtitle={false} />
           <div className="flex items-center gap-2">
+            <LanguageToggle />
             <div ref={mobileUserMenuRef} className="relative">
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
@@ -105,7 +110,7 @@ export function Navigation() {
                     className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                   >
                     <LogOut className="h-4 w-4" />
-                    Sign out
+                    {t('nav.signOut')}
                   </button>
                 </div>
               )}
@@ -135,7 +140,10 @@ export function Navigation() {
       {/* Desktop Sidebar */}
       <nav className="hidden lg:flex bg-white border-r border-gray-200 w-64 h-screen fixed left-0 top-0 overflow-y-auto flex-col">
         <div className="p-6 flex-1">
-          <h1 className="text-2xl font-bold text-gray-900 mb-8">MyGTD</h1>
+          <div className="flex items-center justify-between mb-8">
+            <Logo size="md" showSubtitle={false} />
+            <LanguageToggle />
+          </div>
           
           <div className="space-y-2">
             {navigationItems.map((item) => {
@@ -191,7 +199,7 @@ export function Navigation() {
                   className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                 >
                   <LogOut className="h-4 w-4" />
-                  Sign out
+                  {t('nav.signOut')}
                 </button>
               </div>
             )}

@@ -4,6 +4,9 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { TypingEffect } from '@/components/ui/typing-effect';
+import { LanguageToggle } from '@/components/ui/language-toggle';
+import { Logo } from '@/components/ui/logo';
+import { useLanguage } from '@/contexts/language-context';
 import { 
   Inbox, 
   CheckSquare, 
@@ -18,115 +21,116 @@ import {
   Workflow
 } from 'lucide-react';
 
-const gtdCatchphrases = [
-  "2-Minute Rule",
-  "Stress-Free Productivity", 
-  "Mind Like Water",
-  "Capture Everything",
-  "Weekly Reviews",
-  "Next Action Thinking",
-  "Trusted System",
-  "Clear Your Mind"
-];
-
-const features = [
-  {
-    icon: Inbox,
-    title: 'Smart Inbox',
-    description: 'Capture everything that has your attention in one trusted place. Never lose a thought or task again.',
-    color: 'text-blue-500'
-  },
-  {
-    icon: CheckSquare,
-    title: 'Next Actions',
-    description: 'Transform ideas into actionable tasks. Schedule, prioritize, and track your progress effortlessly.',
-    color: 'text-green-500'
-  },
-  {
-    icon: FolderOpen,
-    title: 'Project Management',
-    description: 'Break down complex goals into manageable steps. Track multi-step initiatives with ease.',
-    color: 'text-purple-500'
-  },
-  {
-    icon: Cloud,
-    title: 'Maybe/Someday',
-    description: 'Park future ideas safely. Review and activate them when the time is right.',
-    color: 'text-yellow-500'
-  },
-  {
-    icon: Calendar,
-    title: 'Calendar Integration',
-    description: 'Schedule actions and automatically send calendar invites. Your tasks, perfectly timed.',
-    color: 'text-red-500'
-  },
-  {
-    icon: Zap,
-    title: 'Real-time Sync',
-    description: 'Access your tasks anywhere, anytime. Changes sync instantly across all your devices.',
-    color: 'text-indigo-500'
-  }
-];
-
-const benefits = [
-  {
-    icon: Brain,
-    title: 'Clear Your Mind',
-    description: 'Stop trying to remember everything. Let MyGTD be your external brain.'
-  },
-  {
-    icon: Target,
-    title: 'Focus on What Matters',
-    description: 'See exactly what needs your attention right now. No more overwhelm.'
-  },
-  {
-    icon: Workflow,
-    title: 'Trusted System',
-    description: 'Built on proven productivity principles. Stress-free productivity guaranteed.'
-  }
-];
-
-const pricingPlans = [
-  {
-    name: 'Free',
-    price: '$0',
-    period: 'forever',
-    description: 'Perfect for getting started with GTD',
-    features: [
-      'Unlimited tasks in Inbox',
-      'Basic Next Actions',
-      'Simple project tracking',
-      'Maybe/Someday lists',
-      'Mobile access',
-      'Email support'
-    ],
-    cta: 'Get Started Free',
-    highlighted: false
-  },
-  {
-    name: 'Premium',
-    price: '$5.99',
-    period: 'per month',
-    yearlyPrice: '$49.99',
-    yearlyPeriod: 'per year',
-    description: 'For serious productivity enthusiasts',
-    features: [
-      'Everything in Free',
-      'Calendar integration',
-      'Automatic email invites',
-      'Advanced scheduling',
-      'Priority support',
-      'Export & backup',
-      'Custom contexts',
-      'Analytics & insights'
-    ],
-    cta: 'Start Premium Trial',
-    highlighted: true
-  }
-];
-
 export default function LandingPage() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const { t } = useLanguage();
+
+  const gtdCatchphrases = [
+    t('landing.catchphrase.twoMinute'),
+    t('landing.catchphrase.stressFree'), 
+    t('landing.catchphrase.mindLikeWater'),
+    t('landing.catchphrase.captureEverything'),
+    t('landing.catchphrase.weeklyReviews'),
+    t('landing.catchphrase.nextAction'),
+    t('landing.catchphrase.trustedSystem'),
+    t('landing.catchphrase.clearMind')
+  ];
+
+  const features = [
+    {
+      icon: Inbox,
+      title: t('landing.features.inbox.title'),
+      description: t('landing.features.inbox.description'),
+      color: 'text-blue-500'
+    },
+    {
+      icon: CheckSquare,
+      title: t('landing.features.nextActions.title'),
+      description: t('landing.features.nextActions.description'),
+      color: 'text-green-500'
+    },
+    {
+      icon: FolderOpen,
+      title: t('landing.features.projects.title'),
+      description: t('landing.features.projects.description'),
+      color: 'text-purple-500'
+    },
+    {
+      icon: Cloud,
+      title: t('landing.features.maybeSomeday.title'),
+      description: t('landing.features.maybeSomeday.description'),
+      color: 'text-yellow-500'
+    },
+    {
+      icon: Calendar,
+      title: t('landing.features.calendar.title'),
+      description: t('landing.features.calendar.description'),
+      color: 'text-red-500'
+    },
+    {
+      icon: Zap,
+      title: t('landing.features.sync.title'),
+      description: t('landing.features.sync.description'),
+      color: 'text-indigo-500'
+    }
+  ];
+
+  const benefits = [
+    {
+      icon: Brain,
+      title: t('landing.benefits.clearMind.title'),
+      description: t('landing.benefits.clearMind.description')
+    },
+    {
+      icon: Target,
+      title: t('landing.benefits.focus.title'),
+      description: t('landing.benefits.focus.description')
+    },
+    {
+      icon: Workflow,
+      title: t('landing.benefits.trusted.title'),
+      description: t('landing.benefits.trusted.description')
+    }
+  ];
+
+  const pricingPlans = [
+    {
+      name: t('landing.pricing.free.name'),
+      price: t('landing.pricing.free.price'),
+      period: t('landing.pricing.free.period'),
+      description: t('landing.pricing.free.description'),
+      features: [
+        t('landing.pricing.feature.unlimitedTasks'),
+        t('landing.pricing.feature.basicActions'),
+        t('landing.pricing.feature.projectTracking'),
+        t('landing.pricing.feature.maybeLists'),
+        t('landing.pricing.feature.mobileAccess'),
+        t('landing.pricing.feature.emailSupport')
+      ],
+      cta: t('landing.pricing.free.cta'),
+      highlighted: false
+    },
+    {
+      name: t('landing.pricing.premium.name'),
+      price: t('landing.pricing.premium.price'),
+      period: t('landing.pricing.premium.period'),
+      yearlyPrice: t('landing.pricing.premium.yearlyPrice'),
+      yearlyPeriod: t('landing.pricing.premium.yearlyPeriod'),
+      description: t('landing.pricing.premium.description'),
+      features: [
+        t('landing.pricing.feature.everythingFree'),
+        t('landing.pricing.feature.calendarIntegration'),
+        t('landing.pricing.feature.emailInvites'),
+        t('landing.pricing.feature.advancedScheduling'),
+        t('landing.pricing.feature.prioritySupport'),
+        t('landing.pricing.feature.exportBackup'),
+        t('landing.pricing.feature.customContexts'),
+        t('landing.pricing.feature.analytics')
+      ],
+      cta: t('landing.pricing.premium.cta'),
+      highlighted: true
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-white">
@@ -134,16 +138,14 @@ export default function LandingPage() {
       <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">MyGTD</h1>
-              <span className="ml-2 text-sm text-gray-500">Getting Things Done</span>
-            </div>
+            <Logo size="md" showSubtitle={true} />
             <div className="flex items-center gap-4">
+              <LanguageToggle />
               <Link href="/auth/login" className="text-gray-600 hover:text-gray-900">
-                Sign In
+                {t('landing.nav.signIn')}
               </Link>
               <Link href="/auth/register">
-                <Button>Get Started Free</Button>
+                <Button>{t('landing.nav.getStarted')}</Button>
               </Link>
             </div>
           </div>
@@ -155,7 +157,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-              Master the 
+              {t('landing.hero.title')} 
               <span className="block min-h-[1.2em]">
                 <TypingEffect 
                   phrases={gtdCatchphrases}
@@ -167,22 +169,21 @@ export default function LandingPage() {
               </span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Transform chaos into clarity with MyGTD. Built on proven productivity principles, 
-              our app helps you capture, organize, and execute everything that has your attention.
+              {t('landing.hero.subtitle')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/auth/register">
                 <Button size="lg" className="text-lg px-8 py-3">
-                  Start Free Today
+                  {t('landing.hero.startFree')}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
               <Button size="lg" variant="outline" className="text-lg px-8 py-3">
-                Watch Demo
+                {t('landing.hero.watchDemo')}
               </Button>
             </div>
             <p className="text-sm text-gray-500 mt-4">
-              ✨ No credit card required • 🚀 Set up in 2 minutes
+              {t('landing.hero.noCreditCard')}
             </p>
           </div>
         </div>
@@ -193,11 +194,10 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Everything You Need for Stress-Free Productivity
+              {t('landing.features.title')}
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              MyGTD implements every aspect of the proven productivity methodology, 
-              giving you a complete system for managing your life and work stress-free.
+              {t('landing.features.subtitle')}
             </p>
           </div>
 
@@ -223,10 +223,10 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Why Choose MyGTD?
+              {t('landing.benefits.title')}
             </h2>
             <p className="text-xl text-gray-600">
-              Join thousands who&apos;ve transformed their productivity with our proven system.
+              {t('landing.benefits.subtitle')}
             </p>
           </div>
 
@@ -252,10 +252,10 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Simple, Transparent Pricing
+              {t('landing.pricing.title')}
             </h2>
             <p className="text-xl text-gray-600 mb-8">
-              Start free, upgrade when you&apos;re ready for advanced features.
+              {t('landing.pricing.subtitle')}
             </p>
             
             {/* Billing Toggle */}
@@ -268,7 +268,7 @@ export default function LandingPage() {
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                Monthly
+                {t('landing.pricing.monthly')}
               </button>
               <button
                 onClick={() => setBillingCycle('yearly')}
@@ -278,9 +278,9 @@ export default function LandingPage() {
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                Yearly
+                {t('landing.pricing.yearly')}
                 <span className="ml-1 text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
-                  Save 33%
+                  {t('landing.pricing.savePercent')}
                 </span>
               </button>
             </div>
@@ -297,7 +297,7 @@ export default function LandingPage() {
                 {plan.highlighted && (
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                     <span className="bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-medium">
-                      Most Popular
+                      {t('landing.pricing.mostPopular')}
                     </span>
                   </div>
                 )}
@@ -310,7 +310,7 @@ export default function LandingPage() {
                         <span className="text-4xl font-bold text-gray-900">{plan.yearlyPrice}</span>
                         <span className="text-gray-600 ml-1">{plan.yearlyPeriod}</span>
                         <div className="text-sm text-gray-500 mt-1">
-                          ${(49.99 / 12).toFixed(2)} per month when billed annually
+                          ${(49.99 / 12).toFixed(2)} {t('landing.pricing.premium.monthlyWhenBilled')}
                         </div>
                       </>
                     ) : (
@@ -352,20 +352,19 @@ export default function LandingPage() {
       <section className="py-20 bg-blue-600 text-white">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold mb-4">
-            Ready to Get Things Done?
+            {t('landing.cta.title')}
           </h2>
           <p className="text-xl mb-8 text-blue-100">
-            Join thousands of productive people who trust MyGTD to manage their life and work.
-            Start your stress-free productivity journey today.
+            {t('landing.cta.subtitle')}
           </p>
           <Link href="/auth/register">
             <Button size="lg" variant="outline" className="bg-white text-blue-600 hover:bg-gray-50 text-lg px-8 py-3">
-              Start Your Free Account
+              {t('landing.cta.button')}
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
           <p className="text-blue-200 text-sm mt-4">
-            No credit card required • Cancel anytime • 30-day money-back guarantee
+            {t('landing.cta.guarantee')}
           </p>
         </div>
       </section>
@@ -375,38 +374,38 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-xl font-bold mb-4">MyGTD</h3>
+              <Logo size="sm" showSubtitle={false} />
               <p className="text-gray-400">
-                The complete Getting Things Done system for stress-free productivity.
+                {t('landing.footer.description')}
               </p>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">Product</h4>
+              <h4 className="font-semibold mb-4">{t('landing.footer.product')}</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="#" className="hover:text-white">Features</Link></li>
-                <li><Link href="#" className="hover:text-white">Pricing</Link></li>
-                <li><Link href="#" className="hover:text-white">Security</Link></li>
+                <li><Link href="#" className="hover:text-white">{t('landing.footer.features')}</Link></li>
+                <li><Link href="#" className="hover:text-white">{t('landing.footer.pricing')}</Link></li>
+                <li><Link href="#" className="hover:text-white">{t('landing.footer.security')}</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">Company</h4>
+              <h4 className="font-semibold mb-4">{t('landing.footer.company')}</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="#" className="hover:text-white">About</Link></li>
-                <li><Link href="#" className="hover:text-white">Blog</Link></li>
-                <li><Link href="#" className="hover:text-white">Contact</Link></li>
+                <li><Link href="#" className="hover:text-white">{t('landing.footer.about')}</Link></li>
+                <li><Link href="#" className="hover:text-white">{t('landing.footer.blog')}</Link></li>
+                <li><Link href="#" className="hover:text-white">{t('landing.footer.contact')}</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">Support</h4>
+              <h4 className="font-semibold mb-4">{t('landing.footer.support')}</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="#" className="hover:text-white">Help Center</Link></li>
-                <li><Link href="#" className="hover:text-white">Privacy Policy</Link></li>
-                <li><Link href="#" className="hover:text-white">Terms of Service</Link></li>
+                <li><Link href="#" className="hover:text-white">{t('landing.footer.helpCenter')}</Link></li>
+                <li><Link href="#" className="hover:text-white">{t('landing.footer.privacy')}</Link></li>
+                <li><Link href="#" className="hover:text-white">{t('landing.footer.terms')}</Link></li>
               </ul>
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 MyGTD. All rights reserved.</p>
+            <p>{t('landing.footer.copyright')}</p>
           </div>
         </div>
       </footer>

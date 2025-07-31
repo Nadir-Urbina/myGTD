@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
+import { useLanguage } from '@/contexts/language-context';
 import { AppLayout } from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +15,7 @@ import { formatDate } from '@/lib/utils';
 
 export default function InboxPage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [inboxItems, setInboxItems] = useState<InboxItem[]>([]);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [loading, setLoading] = useState(true);
@@ -92,9 +94,9 @@ export default function InboxPage() {
     <AppLayout>
       <div className="max-w-4xl mx-auto">
         <div className="mb-6 md:mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Inbox</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{t('inbox.title')}</h1>
           <p className="text-gray-600 text-sm md:text-base">
-            Capture everything that has your attention. We&apos;ll help you organize it later.
+            {t('inbox.subtitle')}
           </p>
         </div>
 
@@ -103,21 +105,21 @@ export default function InboxPage() {
           <form onSubmit={handleAddTask} className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <Input
               type="text"
-              placeholder="What's on your mind?"
+              placeholder={t('inbox.placeholder')}
               value={newTaskTitle}
               onChange={(e) => setNewTaskTitle(e.target.value)}
               className="flex-1"
             />
             <Button type="submit" disabled={adding} className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
-              {adding ? 'Adding...' : 'Capture'}
+              {adding ? t('common.adding') : t('common.capture')}
             </Button>
           </form>
         </div>
 
         {loading ? (
           <div className="text-center py-12">
-            <div className="text-gray-500">Loading your inbox...</div>
+            <div className="text-gray-500">{t('inbox.loadingInbox')}</div>
           </div>
         ) : (
           <div className="space-y-6">
@@ -125,7 +127,7 @@ export default function InboxPage() {
             {unprocessedItems.length > 0 && (
               <div>
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                  Needs Processing ({unprocessedItems.length})
+                  {t('inbox.needsProcessing')} ({unprocessedItems.length})
                 </h2>
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 divide-y">
                   {unprocessedItems.map((item) => (
@@ -149,7 +151,7 @@ export default function InboxPage() {
                             onClick={() => handleMarkAsProcessed(item)}
                             className="flex-1 sm:flex-none"
                           >
-                            Process
+                            {t('common.process')}
                           </Button>
                           <Button
                             variant="ghost"
@@ -171,7 +173,7 @@ export default function InboxPage() {
             {processedItems.length > 0 && (
               <div>
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                  Processed ({processedItems.length})
+                  {t('inbox.processed')} ({processedItems.length})
                 </h2>
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 divide-y">
                   {processedItems.map((item) => (
@@ -193,7 +195,7 @@ export default function InboxPage() {
                             onClick={() => handleDeleteTask(item.id)}
                             className="w-full sm:w-auto"
                           >
-                            Delete
+                            {t('common.delete')}
                           </Button>
                         </div>
                       </div>
@@ -205,9 +207,9 @@ export default function InboxPage() {
 
             {inboxItems.length === 0 && (
               <div className="text-center py-12">
-                <div className="text-gray-500 mb-4">Your inbox is empty!</div>
+                <div className="text-gray-500 mb-4">{t('inbox.empty')}</div>
                 <p className="text-sm text-gray-400">
-                  Start by capturing something that has your attention.
+                  {t('inbox.emptySubtitle')}
                 </p>
               </div>
             )}
@@ -217,10 +219,10 @@ export default function InboxPage() {
 
       <ConfirmationDialog
         isOpen={deleteConfirmation.isOpen}
-        title="Delete Item"
-        message="Are you sure you want to delete this item? This action cannot be undone."
-        confirmText="Delete"
-        cancelText="Cancel"
+        title={t('dialog.deleteItem.title')}
+        message={t('dialog.deleteItem.message')}
+        confirmText={t('common.delete')}
+        cancelText={t('common.cancel')}
         variant="danger"
         onConfirm={confirmDelete}
         onCancel={cancelDelete}
