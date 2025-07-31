@@ -86,6 +86,8 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
   }, [projectId, taskId]);
 
   const loadTaskData = async () => {
+    if (!user) return;
+    
     try {
       const projects = await projectsService.getProjects(user.uid);
       const foundProject = projects.find(p => p.id === projectId);
