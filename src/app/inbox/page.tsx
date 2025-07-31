@@ -113,7 +113,7 @@ export default function InboxPage() {
       // window.location.href = `/projects/${newProject.id}`;
       
       // Show success feedback (you could add a toast notification here)
-      console.log('Successfully converted inbox item to project:', newProject.id);
+      console.log('Successfully converted inbox item to project:', newProject);
       
     } catch (error) {
       console.error('Error converting to project:', error);

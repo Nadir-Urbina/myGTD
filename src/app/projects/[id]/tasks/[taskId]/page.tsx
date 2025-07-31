@@ -15,9 +15,7 @@ import { Project, ProjectTask, ProjectTaskStatus } from '@/types';
 import { projectsService } from '@/services/firebase';
 import { formatDate } from '@/lib/utils';
 import { cn } from '@/lib/utils';
-
-// Mock user ID for now
-const MOCK_USER_ID = 'user_123';
+import { useAuth } from '@/contexts/auth-context';
 
 interface TaskDetailPageProps {
   params: Promise<{ id: string; taskId: string }>;
@@ -71,6 +69,7 @@ const taskStatusConfig = {
 export default function TaskDetailPage({ params }: TaskDetailPageProps) {
   const { id: projectId, taskId } = use(params);
   const router = useRouter();
+  const { user } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
   const [task, setTask] = useState<ProjectTask | null>(null);
   const [loading, setLoading] = useState(true);
@@ -88,7 +87,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
 
   const loadTaskData = async () => {
     try {
-      const projects = await projectsService.getProjects(MOCK_USER_ID);
+      const projects = await projectsService.getProjects(user.uid);
       const foundProject = projects.find(p => p.id === projectId);
       if (foundProject) {
         setProject(foundProject);
@@ -115,7 +114,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
   };
 
   const handleSave = async () => {
-    if (!project || !task || saving) return;
+    if (!project || !task || saving || !user) return;
 
     setSaving(true);
     try {
@@ -127,7 +126,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
         blockedReason: blockedReason || undefined,
       };
 
-      await projectsService.updateTaskInProject(MOCK_USER_ID, project.id, task.id, updates);
+      await projectsService.updateTaskInProject(user.uid, project.id, task.id, updates);
       
       setTask({
         ...task,
@@ -148,7 +147,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
     if (!project || !task) return;
 
     try {
-      await projectsService.deleteTaskFromProject(MOCK_USER_ID, project.id, task.id);
+      await projectsService.deleteTaskFromProject(user.uid, project.id, task.id);
       router.push(`/projects/${project.id}`);
     } catch (error) {
       console.error('Error deleting task:', error);
@@ -162,10 +161,10 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
   };
 
   const handleConvertToNextAction = async () => {
-    if (!project || !task) return;
+    if (!project || !task || !user) return;
 
     try {
-      await projectsService.convertTaskToNextAction(MOCK_USER_ID, project.id, task.id);
+      await projectsService.convertTaskToNextAction(user.uid, project.id, task.id);
       await loadTaskData(); // Refresh to see the status change
     } catch (error) {
       console.error('Error converting to next action:', error);

@@ -8,9 +8,8 @@ import { NextAction, NextActionStatus } from '@/types';
 import { nextActionsService } from '@/services/firebase';
 import { formatDate } from '@/lib/utils';
 import { cn } from '@/lib/utils';
-
-// Mock user ID for now
-const MOCK_USER_ID = 'user_123';
+import { useLanguage } from '@/contexts/language-context';
+import { useAuth } from '@/contexts/auth-context';
 
 interface CalendarDay {
   date: Date;
@@ -20,20 +19,24 @@ interface CalendarDay {
 }
 
 export default function CalendarPage() {
+  const { user } = useAuth();
+  const { t } = useLanguage();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [nextActions, setNextActions] = useState<NextAction[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
 
   useEffect(() => {
+    if (!user) return;
+
     // Subscribe to next actions changes
-    const unsubscribe = nextActionsService.subscribeToNextActions(MOCK_USER_ID, (actions) => {
+    const unsubscribe = nextActionsService.subscribeToNextActions(user.uid, (actions) => {
       setNextActions(actions);
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [user]);
 
   const scheduledActions = nextActions.filter(action => 
     action.status === NextActionStatus.SCHEDULED && action.scheduledDate
@@ -174,6 +177,8 @@ export default function CalendarPage() {
   };
 
   const handleStatusChange = async (action: NextAction, newStatus: NextActionStatus) => {
+    if (!user) return;
+    
     try {
       const updates: Partial<NextAction> = { status: newStatus };
       
@@ -183,7 +188,7 @@ export default function CalendarPage() {
         updates.completedDate = undefined;
       }
 
-      await nextActionsService.updateNextAction(MOCK_USER_ID, action.id, updates);
+      await nextActionsService.updateNextAction(user.uid, action.id, updates);
     } catch (error) {
       console.error('Error updating action status:', error);
     }
