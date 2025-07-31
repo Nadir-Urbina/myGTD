@@ -198,6 +198,22 @@ const translations: Record<Language, Record<string, string>> = {
     'landing.footer.privacy': 'Privacy Policy',
     'landing.footer.terms': 'Terms of Service',
     'landing.footer.copyright': '© 2024 MyGTD. All rights reserved.',
+
+    // Projects
+    'projects.title': 'Projects',
+    'projects.description': 'Manage your multi-step initiatives and track progress toward your goals.',
+    'projects.quickAdd.placeholder': 'Start a new project...',
+    'projects.quickAdd.create': 'Create Project',
+    'projects.quickAdd.creating': 'Creating...',
+    'projects.deleteDialog.title': 'Delete Project',
+    'projects.deleteDialog.message': 'Are you sure you want to delete this project? This will also delete all tasks and cannot be undone.',
+    'projects.deleteDialog.confirm': 'Delete',
+    'projects.deleteDialog.cancel': 'Cancel',
+
+    // Inbox to Project conversion
+    'inbox.convertToProject': 'Convert this item to a project',
+    'inbox.toProject': 'To Project',
+    'inbox.converting': 'Converting...',
   },
   es: {
     // App Name
@@ -383,6 +399,22 @@ const translations: Record<Language, Record<string, string>> = {
     'landing.footer.privacy': 'Política de Privacidad',
     'landing.footer.terms': 'Términos de Servicio',
     'landing.footer.copyright': '© 2024 MyGTD. Todos los derechos reservados.',
+
+    // Projects
+    'projects.title': 'Proyectos',
+    'projects.description': 'Gestiona tus iniciativas de múltiples pasos y rastrea el progreso hacia tus objetivos.',
+    'projects.quickAdd.placeholder': 'Comenzar un nuevo proyecto...',
+    'projects.quickAdd.create': 'Crear Proyecto',
+    'projects.quickAdd.creating': 'Creando...',
+    'projects.deleteDialog.title': 'Eliminar Proyecto',
+    'projects.deleteDialog.message': '¿Estás seguro de que quieres eliminar este proyecto? Esto también eliminará todas las tareas y no se puede deshacer.',
+    'projects.deleteDialog.confirm': 'Eliminar',
+    'projects.deleteDialog.cancel': 'Cancelar',
+
+    // Inbox to Project conversion
+    'inbox.convertToProject': 'Convertir este elemento en un proyecto',
+    'inbox.toProject': 'A Proyecto',
+    'inbox.converting': 'Convirtiendo...',
   },
 };
 

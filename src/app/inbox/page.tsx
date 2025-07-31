@@ -9,9 +9,9 @@ import { AITaskCard } from '@/components/ui/ai-task-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
-import { Plus, ChevronRight, Clock } from 'lucide-react';
-import { InboxItem } from '@/types';
-import { inboxService } from '@/services/firebase';
+import { Plus, ChevronRight, Clock, FolderPlus } from 'lucide-react';
+import { InboxItem, ProjectStatus } from '@/types';
+import { inboxService, projectsService } from '@/services/firebase';
 import { formatDate } from '@/lib/utils';
 
 export default function InboxPage() {
@@ -25,6 +25,7 @@ export default function InboxPage() {
     isOpen: boolean;
     itemId: string | null;
   }>({ isOpen: false, itemId: null });
+  const [convertingToProject, setConvertingToProject] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -86,6 +87,39 @@ export default function InboxPage() {
 
   const cancelDelete = () => {
     setDeleteConfirmation({ isOpen: false, itemId: null });
+  };
+
+  const handleConvertToProject = async (item: InboxItem) => {
+    if (!user) return;
+
+    setConvertingToProject(item.id);
+    try {
+      // Create new project with inbox item data
+      const projectData = {
+        title: item.title,
+        description: item.description || '',
+        status: ProjectStatus.QUEUED,
+        tasks: [],
+      };
+
+      const newProject = await projectsService.addProject(user.uid, projectData);
+      
+      // Mark inbox item as processed
+      await inboxService.updateInboxItem(user.uid, item.id, {
+        processed: true,
+      });
+
+      // Optional: Navigate to the new project
+      // window.location.href = `/projects/${newProject.id}`;
+      
+      // Show success feedback (you could add a toast notification here)
+      console.log('Successfully converted inbox item to project:', newProject.id);
+      
+    } catch (error) {
+      console.error('Error converting to project:', error);
+    } finally {
+      setConvertingToProject(null);
+    }
   };
 
   const unprocessedItems = inboxItems.filter(item => !item.processed);
@@ -152,6 +186,17 @@ export default function InboxPage() {
                             </div>
                           </Link>
                           <div className="flex items-center gap-2 sm:ml-4">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleConvertToProject(item)}
+                              disabled={convertingToProject === item.id}
+                              className="flex-1 sm:flex-none"
+                              title={t('inbox.convertToProject')}
+                            >
+                              <FolderPlus className="h-3 w-3 mr-1" />
+                              {convertingToProject === item.id ? t('inbox.converting') : t('inbox.toProject')}
+                            </Button>
                             <Button
                               variant="outline"
                               size="sm"

@@ -9,15 +9,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { 
   ArrowLeft, Save, Trash2, Plus, ArrowRight, Clock, CheckCircle, 
-  Play, Square, Ban, User, ChevronDown, ChevronRight, Calendar
+  Play, Square, Ban, User, Calendar, MoreHorizontal, Edit3
 } from 'lucide-react';
 import { Project, ProjectTask, ProjectStatus, ProjectTaskStatus } from '@/types';
 import { projectsService } from '@/services/firebase';
 import { formatDate } from '@/lib/utils';
 import { cn } from '@/lib/utils';
-
-// Mock user ID for now
-const MOCK_USER_ID = 'user_123';
+import { useAuth } from '@/contexts/auth-context';
 
 interface ProjectDetailPageProps {
   params: Promise<{ id: string }>;
@@ -25,28 +23,32 @@ interface ProjectDetailPageProps {
 
 const projectStatusConfig = {
   [ProjectStatus.QUEUED]: {
-    label: 'Queued',
+    label: 'Planning',
     icon: Square,
-    color: 'text-gray-500',
-    bgColor: 'bg-gray-100',
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50',
+    borderColor: 'border-blue-200',
   },
   [ProjectStatus.IN_PROGRESS]: {
     label: 'In Progress',
     icon: Play,
-    color: 'text-blue-500',
-    bgColor: 'bg-blue-100',
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-50',
+    borderColor: 'border-orange-200',
+  },
+  [ProjectStatus.BLOCKED]: {
+    label: 'Paused',
+    icon: Ban,
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-50',
+    borderColor: 'border-purple-200',
   },
   [ProjectStatus.DONE]: {
     label: 'Done',
     icon: CheckCircle,
-    color: 'text-green-500',
-    bgColor: 'bg-green-100',
-  },
-  [ProjectStatus.BLOCKED]: {
-    label: 'Blocked',
-    icon: Ban,
-    color: 'text-red-500',
-    bgColor: 'bg-red-100',
+    color: 'text-green-600',
+    bgColor: 'bg-green-50',
+    borderColor: 'border-green-200',
   },
 };
 
@@ -55,42 +57,50 @@ const taskStatusConfig = {
     label: 'Not Started',
     icon: Square,
     color: 'text-gray-500',
+    bgColor: 'bg-gray-50',
   },
   [ProjectTaskStatus.IN_PROGRESS]: {
     label: 'In Progress',
     icon: Play,
-    color: 'text-blue-500',
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50',
   },
   [ProjectTaskStatus.COMPLETED]: {
     label: 'Completed',
     icon: CheckCircle,
-    color: 'text-green-500',
+    color: 'text-green-600',
+    bgColor: 'bg-green-50',
   },
   [ProjectTaskStatus.DELEGATED]: {
     label: 'Delegated',
     icon: User,
-    color: 'text-purple-500',
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-50',
   },
   [ProjectTaskStatus.IN_NEXT_ACTIONS]: {
     label: 'In Next Actions',
     icon: ArrowRight,
-    color: 'text-orange-500',
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-50',
   },
   [ProjectTaskStatus.SCHEDULED]: {
     label: 'Scheduled',
     icon: Calendar,
-    color: 'text-blue-600',
+    color: 'text-blue-700',
+    bgColor: 'bg-blue-50',
   },
   [ProjectTaskStatus.BLOCKED]: {
     label: 'Blocked',
     icon: Ban,
-    color: 'text-red-500',
+    color: 'text-red-600',
+    bgColor: 'bg-red-50',
   },
 };
 
 export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
   const { id } = use(params);
   const router = useRouter();
+  const { user } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -100,7 +110,8 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
   const [status, setStatus] = useState<ProjectStatus>(ProjectStatus.QUEUED);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [addingTask, setAddingTask] = useState(false);
-  const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [editingDescription, setEditingDescription] = useState(false);
   
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean;
@@ -109,12 +120,16 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
   }>({ isOpen: false, type: 'project', targetId: null });
 
   useEffect(() => {
-    loadProject();
-  }, [id]);
+    if (user) {
+      loadProject();
+    }
+  }, [id, user]);
 
   const loadProject = async () => {
+    if (!user) return;
+    
     try {
-      const projects = await projectsService.getProjects(MOCK_USER_ID);
+      const projects = await projectsService.getProjects(user.uid);
       const foundProject = projects.find(p => p.id === id);
       if (foundProject) {
         setProject(foundProject);
@@ -134,7 +149,7 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
   };
 
   const handleSave = async () => {
-    if (!project || saving) return;
+    if (!project || saving || !user) return;
 
     setSaving(true);
     try {
@@ -151,7 +166,7 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
         updates.completedAt = undefined;
       }
 
-      await projectsService.updateProject(MOCK_USER_ID, project.id, updates);
+      await projectsService.updateProject(user.uid, project.id, updates);
       
       setProject({
         ...project,
@@ -170,17 +185,17 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
   };
 
   const handleAddTask = async () => {
-    if (!project || !newTaskTitle.trim() || addingTask) return;
+    if (!project || !newTaskTitle.trim() || addingTask || !user) return;
 
     setAddingTask(true);
     try {
-      await projectsService.addTaskToProject(MOCK_USER_ID, project.id, {
+      await projectsService.addTaskToProject(user.uid, project.id, {
         title: newTaskTitle.trim(),
         status: ProjectTaskStatus.NOT_STARTED,
         order: (project.tasks?.length || 0) + 1,
       });
       setNewTaskTitle('');
-      await loadProject(); // Refresh project data
+      await loadProject();
     } catch (error) {
       console.error('Error adding task:', error);
     } finally {
@@ -189,24 +204,24 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
   };
 
   const handleTaskStatusChange = async (taskId: string, newStatus: ProjectTaskStatus) => {
-    if (!project) return;
+    if (!project || !user) return;
 
     try {
-      await projectsService.updateTaskInProject(MOCK_USER_ID, project.id, taskId, {
+      await projectsService.updateTaskInProject(user.uid, project.id, taskId, {
         status: newStatus,
       });
-      await loadProject(); // Refresh to get updated data
+      await loadProject();
     } catch (error) {
       console.error('Error updating task status:', error);
     }
   };
 
   const handleConvertToNextAction = async (taskId: string) => {
-    if (!project) return;
+    if (!project || !user) return;
 
     try {
-      await projectsService.convertTaskToNextAction(MOCK_USER_ID, project.id, taskId);
-      await loadProject(); // Refresh to see the status change
+      await projectsService.convertTaskToNextAction(user.uid, project.id, taskId);
+      await loadProject();
     } catch (error) {
       console.error('Error converting to next action:', error);
     }
@@ -217,15 +232,15 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
   };
 
   const confirmDelete = async () => {
-    if (!deleteConfirmation.targetId) return;
+    if (!deleteConfirmation.targetId || !user) return;
 
     try {
       if (deleteConfirmation.type === 'project') {
-        await projectsService.deleteProject(MOCK_USER_ID, deleteConfirmation.targetId);
+        await projectsService.deleteProject(user.uid, deleteConfirmation.targetId);
         router.push('/projects');
       } else {
-        await projectsService.deleteTaskFromProject(MOCK_USER_ID, project!.id, deleteConfirmation.targetId);
-        await loadProject(); // Refresh project data
+        await projectsService.deleteTaskFromProject(user.uid, project!.id, deleteConfirmation.targetId);
+        await loadProject();
       }
     } catch (error) {
       console.error('Error deleting:', error);
@@ -238,141 +253,14 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
     setDeleteConfirmation({ isOpen: false, type: 'project', targetId: null });
   };
 
-  const toggleTaskExpansion = (taskId: string) => {
-    const newExpanded = new Set(expandedTasks);
-    if (newExpanded.has(taskId)) {
-      newExpanded.delete(taskId);
-    } else {
-      newExpanded.add(taskId);
-    }
-    setExpandedTasks(newExpanded);
-  };
-
-  const renderTaskStatusButton = (task: ProjectTask, taskStatus: ProjectTaskStatus) => {
-    const config = taskStatusConfig[taskStatus];
-    const Icon = config.icon;
-    const isActive = task.status === taskStatus;
-
-    return (
-      <Button
-        key={taskStatus}
-        variant={isActive ? "default" : "outline"}
-        size="sm"
-        onClick={() => handleTaskStatusChange(task.id, taskStatus)}
-        className={cn(
-          "flex items-center gap-1 text-xs min-w-0",
-          isActive && "pointer-events-none"
-        )}
-      >
-        <Icon className="h-3 w-3 flex-shrink-0" />
-        <span className="truncate">{config.label}</span>
-      </Button>
-    );
-  };
-
-  const renderTask = (task: ProjectTask, depth = 0) => {
-    const config = taskStatusConfig[task.status];
-    const Icon = config.icon;
-    const isExpanded = expandedTasks.has(task.id);
-    const hasSubtasks = task.subtasks && task.subtasks.length > 0;
-
-    return (
-      <div key={task.id} className={cn("border-l-2 border-gray-200", depth > 0 && "ml-6")}>
-        <div className="p-4 hover:bg-gray-50 transition-colors">
-          <div className="flex items-start gap-3">
-            {hasSubtasks && (
-              <button
-                onClick={() => toggleTaskExpansion(task.id)}
-                className="mt-1 p-1 hover:bg-gray-200 rounded"
-              >
-                {isExpanded ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </button>
-            )}
-            
-            <div className="flex-1 min-w-0">
-                             <div className="flex items-center gap-2 mb-2">
-                 <Icon className={cn("h-4 w-4", config.color)} />
-                 <h4 
-                   className={cn(
-                     "font-medium cursor-pointer hover:text-blue-600 transition-colors",
-                     task.status === ProjectTaskStatus.COMPLETED 
-                       ? "text-gray-500 line-through" 
-                       : "text-gray-900"
-                   )}
-                   onClick={() => router.push(`/projects/${project!.id}/tasks/${task.id}`)}
-                 >
-                   {task.title}
-                 </h4>
-               </div>
-              
-              {task.description && (
-                <p className="text-sm text-gray-600 mb-2">{task.description}</p>
-              )}
-              
-              <div className="flex flex-wrap items-center text-xs text-gray-500 gap-3 mb-3">
-                <div className="flex items-center">
-                  <Clock className="h-3 w-3 mr-1" />
-                  {formatDate(task.createdAt)}
-                </div>
-                {task.delegatedTo && (
-                  <div className="bg-purple-100 text-purple-700 px-2 py-1 rounded">
-                    Delegated to: {task.delegatedTo}
-                  </div>
-                )}
-                {task.completedAt && (
-                  <div className="text-green-600">
-                    Completed {formatDate(task.completedAt)}
-                  </div>
-                )}
-              </div>
-              
-              <div className="flex flex-wrap gap-1 mb-2">
-                {Object.values(ProjectTaskStatus).map((statusOption) => 
-                  renderTaskStatusButton(task, statusOption)
-                )}
-              </div>
-              
-                             <div className="flex flex-wrap gap-2">
-                 {task.status !== ProjectTaskStatus.IN_NEXT_ACTIONS && 
-                  task.status !== ProjectTaskStatus.SCHEDULED && 
-                  task.status !== ProjectTaskStatus.COMPLETED && (
-                   <Button
-                     variant="outline"
-                     size="sm"
-                     onClick={() => handleConvertToNextAction(task.id)}
-                   >
-                     <ArrowRight className="h-3 w-3 mr-1" />
-                     To Next Actions
-                   </Button>
-                 )}
-                 {task.nextActionId && (
-                   <div className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded">
-                     Linked to Next Action
-                   </div>
-                 )}
-                 <Button
-                   variant="destructive"
-                   size="sm"
-                   onClick={() => handleDeleteTask(task.id)}
-                 >
-                   <Trash2 className="h-3 w-3" />
-                 </Button>
-               </div>
-            </div>
-          </div>
-        </div>
-        
-        {hasSubtasks && isExpanded && (
-          <div className="ml-4">
-            {task.subtasks!.map(subtask => renderTask(subtask, depth + 1))}
-          </div>
-        )}
-      </div>
-    );
+  const getTaskStats = () => {
+    if (!project?.tasks) return { total: 0, completed: 0, percentage: 0 };
+    
+    const total = project.tasks.length;
+    const completed = project.tasks.filter(task => task.status === ProjectTaskStatus.COMPLETED).length;
+    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+    
+    return { total, completed, percentage };
   };
 
   if (loading) {
@@ -402,183 +290,269 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
     );
   }
 
+  const stats = getTaskStats();
+  const statusConfig = projectStatusConfig[status];
+  const StatusIcon = statusConfig.icon;
+
   return (
     <AppLayout>
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center gap-4 mb-6 md:mb-8">
+      <div className="max-w-5xl mx-auto px-6 py-8">
+        {/* Header with Back Button */}
+        <div className="flex items-center gap-3 mb-8">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => router.push('/projects')}
-            className="self-start"
+            className="text-gray-600 hover:text-gray-900"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="h-4 w-4 mr-1" />
             Back to Projects
           </Button>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-xl md:text-2xl font-bold text-gray-900">Project Details</h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Created {formatDate(project.createdAt)}
-            </p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex items-center gap-2 ml-auto">
             <Button
               variant="outline"
               size="sm"
               onClick={handleSave}
               disabled={saving}
-              className="w-full sm:w-auto"
             >
-              <Save className="h-4 w-4 mr-2" />
+              <Save className="h-4 w-4 mr-1" />
               {saving ? 'Saving...' : 'Save'}
             </Button>
             <Button
-              variant="destructive"
+              variant="ghost"
               size="sm"
               onClick={handleDelete}
-              className="w-full sm:w-auto"
+              className="text-red-600 hover:text-red-700"
             >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete Project
+              <Trash2 className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
-          {/* Main content */}
-          <div className="xl:col-span-2 space-y-4 md:space-y-6">
-            {/* Project Info */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">Project Information</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Title
-                  </label>
-                  <Input
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Project name"
-                  />
-                </div>
+        {/* Project Title */}
+        <div className="mb-8">
+          {editingTitle ? (
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onBlur={() => setEditingTitle(false)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') setEditingTitle(false);
+                if (e.key === 'Escape') {
+                  setTitle(project.title);
+                  setEditingTitle(false);
+                }
+              }}
+              className="text-4xl font-bold border-none shadow-none p-0 h-auto bg-transparent focus:ring-0"
+              autoFocus
+            />
+          ) : (
+            <h1 
+              className="text-4xl font-bold text-gray-900 cursor-pointer hover:bg-gray-50 rounded px-2 py-1 -mx-2 transition-colors"
+              onClick={() => setEditingTitle(true)}
+            >
+              {title}
+            </h1>
+          )}
+        </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description
-                  </label>
-                  <Textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Brief description of the project"
-                    rows={3}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Notes
-                  </label>
-                  <Textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Additional notes, context, or details..."
-                    rows={4}
-                  />
-                </div>
-              </div>
+        {/* Properties Bar */}
+        <div className="flex flex-wrap items-center gap-6 mb-8 pb-4 border-b border-gray-200">
+          {/* Status */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500 w-16">Status</span>
+            <div className="relative">
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as ProjectStatus)}
+                className={cn(
+                  "appearance-none border rounded-md px-3 py-1 text-sm font-medium cursor-pointer focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                  statusConfig.bgColor,
+                  statusConfig.color,
+                  statusConfig.borderColor
+                )}
+              >
+                {Object.entries(projectStatusConfig).map(([key, config]) => (
+                  <option key={key} value={key}>
+                    {config.label}
+                  </option>
+                ))}
+              </select>
             </div>
+          </div>
 
-            {/* Tasks */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-gray-900">Tasks</h3>
-                <span className="text-sm text-gray-500">
-                  {project.tasks?.length || 0} tasks
-                </span>
-              </div>
-
-              {/* Add Task */}
-              <div className="flex gap-2 mb-6">
-                <Input
-                  value={newTaskTitle}
-                  onChange={(e) => setNewTaskTitle(e.target.value)}
-                  placeholder="Add a new task..."
-                  className="flex-1"
-                  onKeyPress={(e) => e.key === 'Enter' && handleAddTask()}
+          {/* Completion */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500 w-20">Completion</span>
+            <div className="flex items-center gap-2">
+              <div className="w-24 bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${stats.percentage}%` }}
                 />
-                <Button
-                  onClick={handleAddTask}
-                  disabled={addingTask || !newTaskTitle.trim()}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
               </div>
+              <span className="text-sm font-medium text-gray-700">
+                {stats.percentage}%
+              </span>
+            </div>
+          </div>
 
-              {/* Task List */}
-              {project.tasks && project.tasks.length > 0 ? (
-                <div className="space-y-2">
-                  {project.tasks.map(task => renderTask(task))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  No tasks yet. Add your first task to get started.
-                </div>
+          {/* Task Count */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500 w-16">Tasks</span>
+            <span className="text-sm font-medium text-gray-700">
+              {stats.completed}/{stats.total}
+            </span>
+          </div>
+
+          {/* Created Date */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500 w-16">Created</span>
+            <span className="text-sm text-gray-700">
+              {formatDate(project.createdAt)}
+            </span>
+          </div>
+        </div>
+
+        {/* Description */}
+        <div className="mb-8">
+          {editingDescription ? (
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              onBlur={() => setEditingDescription(false)}
+              placeholder="Add a description..."
+              className="border-none shadow-none p-0 resize-none bg-transparent focus:ring-0 text-gray-700"
+              rows={3}
+              autoFocus
+            />
+          ) : (
+            <div 
+              className="text-gray-700 cursor-pointer hover:bg-gray-50 rounded px-2 py-1 -mx-2 transition-colors min-h-[60px] flex items-start"
+              onClick={() => setEditingDescription(true)}
+            >
+              {description || (
+                <span className="text-gray-400 italic">Add a description...</span>
               )}
             </div>
+          )}
+        </div>
+
+        {/* Tasks Section */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-900">Tasks</h2>
+            <span className="text-sm text-gray-500">
+              {stats.total} task{stats.total !== 1 ? 's' : ''}
+            </span>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-4 md:space-y-6">
-            {/* Status */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">Status</h3>
-              <div className="space-y-2">
-                {Object.values(ProjectStatus).map((statusOption) => {
-                  const config = projectStatusConfig[statusOption];
-                  const Icon = config.icon;
-                  const isActive = status === statusOption;
+          {/* Add Task */}
+          <div className="flex gap-2 mb-6">
+            <Input
+              value={newTaskTitle}
+              onChange={(e) => setNewTaskTitle(e.target.value)}
+              placeholder="Add a task..."
+              className="flex-1"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleAddTask();
+              }}
+            />
+            <Button
+              onClick={handleAddTask}
+              disabled={addingTask || !newTaskTitle.trim()}
+              size="sm"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
 
-                  return (
-                    <button
-                      key={statusOption}
-                      onClick={() => setStatus(statusOption)}
-                      className={cn(
-                        "w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
-                        isActive 
-                          ? `${config.bgColor} ${config.color}` 
-                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+          {/* Tasks Table */}
+          {project.tasks && project.tasks.length > 0 ? (
+            <div className="space-y-2">
+              {project.tasks.map((task) => {
+                const taskConfig = taskStatusConfig[task.status];
+                const TaskIcon = taskConfig.icon;
+                
+                return (
+                  <div 
+                    key={task.id} 
+                    className="flex items-center gap-3 py-3 px-4 hover:bg-gray-50 rounded-lg transition-colors group"
+                  >
+                    {/* Status */}
+                    <div className="relative">
+                      <select
+                        value={task.status}
+                        onChange={(e) => handleTaskStatusChange(task.id, e.target.value as ProjectTaskStatus)}
+                        className={cn(
+                          "appearance-none border rounded px-2 py-1 text-xs font-medium cursor-pointer focus:ring-1 focus:ring-blue-500",
+                          taskConfig.bgColor,
+                          taskConfig.color
+                        )}
+                      >
+                        {Object.entries(taskStatusConfig).map(([key, config]) => (
+                          <option key={key} value={key}>
+                            {config.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Task Title */}
+                    <div className="flex-1 min-w-0">
+                      <div className={cn(
+                        "font-medium",
+                        task.status === ProjectTaskStatus.COMPLETED 
+                          ? "text-gray-500 line-through" 
+                          : "text-gray-900"
+                      )}>
+                        {task.title}
+                      </div>
+                      {task.description && (
+                        <div className="text-sm text-gray-600 mt-1">
+                          {task.description}
+                        </div>
                       )}
-                    >
-                      <Icon className="h-4 w-4" />
-                      {config.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+                    </div>
 
-            {/* Metadata */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">Details</h3>
-              <div className="space-y-3 text-sm">
-                <div>
-                  <span className="text-gray-500">Created:</span>
-                  <div className="font-medium">{formatDate(project.createdAt)}</div>
-                </div>
-                <div>
-                  <span className="text-gray-500">Last updated:</span>
-                  <div className="font-medium">{formatDate(project.updatedAt)}</div>
-                </div>
-                {project.completedAt && (
-                  <div>
-                    <span className="text-gray-500">Completed:</span>
-                    <div className="font-medium text-green-600">{formatDate(project.completedAt)}</div>
+                    {/* Created Date */}
+                    <div className="text-xs text-gray-500">
+                      {formatDate(task.createdAt)}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {task.status !== ProjectTaskStatus.IN_NEXT_ACTIONS && 
+                       task.status !== ProjectTaskStatus.SCHEDULED && 
+                       task.status !== ProjectTaskStatus.COMPLETED && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleConvertToNextAction(task.id)}
+                          className="h-7 px-2 text-xs"
+                        >
+                          <ArrowRight className="h-3 w-3" />
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteTask(task.id)}
+                        className="h-7 px-2 text-xs text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
-                )}
-              </div>
+                );
+              })}
             </div>
-          </div>
+          ) : (
+            <div className="text-center py-12 text-gray-500">
+              <div className="text-gray-400 mb-2">No tasks yet</div>
+              <div className="text-sm">Add your first task to get started</div>
+            </div>
+          )}
         </div>
       </div>
 

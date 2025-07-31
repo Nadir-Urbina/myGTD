@@ -47,7 +47,7 @@ export function ConfirmationDialog({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+        className="fixed inset-0 bg-gray-100 bg-opacity-80 transition-opacity"
         onClick={onCancel}
       />
       
