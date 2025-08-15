@@ -4,8 +4,10 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
+import { useLanguage } from '@/contexts/language-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { GoogleSignInButton } from '@/components/ui/google-sign-in-button';
 import { Mail, Lock, LogIn, Link2, Eye, EyeOff, CheckCircle } from 'lucide-react';
 
 function LoginForm() {
@@ -18,7 +20,8 @@ function LoginForm() {
   const [emailLinkSent, setEmailLinkSent] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
   
-  const { user, loading: authLoading, signIn, sendSignInLink } = useAuth();
+  const { user, loading: authLoading, signIn, signInWithGoogle, sendSignInLink } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -67,6 +70,15 @@ function LoginForm() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setError('');
+    try {
+      await signInWithGoogle();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to sign in with Google');
+    }
+  };
+
   const handleEmailLink = async () => {
     if (!email) {
       setError('Please enter your email address');
@@ -94,7 +106,7 @@ function LoginForm() {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">MyGTD</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">EffectivO</h1>
           <h2 className="text-xl font-semibold text-gray-700 mb-6">Sign in to your account</h2>
         </div>
       </div>
@@ -128,6 +140,25 @@ function LoginForm() {
             </div>
           ) : (
             <>
+              {/* Google Sign-In Button */}
+              <div className="mb-6">
+                <GoogleSignInButton
+                  onClick={handleGoogleSignIn}
+                  variant="signin"
+                  disabled={authLoading}
+                />
+              </div>
+
+              {/* Divider */}
+              <div className="relative mb-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-gray-500">{t('auth.orSignInWith')}</span>
+                </div>
+              </div>
+
               <form className="space-y-6" onSubmit={handleSubmit}>
                 {emailVerified && (
                   <div className="rounded-md bg-green-50 p-4">

@@ -16,8 +16,8 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 const translations: Record<Language, Record<string, string>> = {
   en: {
     // App Name
-    'app.name': 'MyGTD',
-    'app.description': 'A GTD-inspired productivity app for managing projects, tasks, and next actions',
+    'app.name': 'EffectivO',
+    'app.description': 'A powerful productivity app for managing projects, tasks, and next actions with smart AI assistance',
     
     // Navigation
     'nav.inbox': 'Inbox',
@@ -65,6 +65,16 @@ const translations: Record<Language, Record<string, string>> = {
     'language.english': 'English',
     'language.spanish': 'Spanish',
 
+    // Authentication
+    'auth.signInWithGoogle': 'Continue with Google',
+    'auth.signUpWithGoogle': 'Sign up with Google',
+    'auth.orSignInWith': 'Or sign in with email',
+    'auth.orSignUpWith': 'Or sign up with email',
+    'auth.alreadyHaveAccount': 'Already have an account?',
+    'auth.dontHaveAccount': 'Don\'t have an account?',
+    'auth.linkGoogleAccount': 'Link Google Account',
+    'auth.googleLinked': 'Google account linked successfully',
+
     // AI Features
     'ai.twoMinuteRule.candidate': '2-Minute Rule Candidate',
     'ai.twoMinuteRule.tooltip': 'AI suggests this task might take 2 minutes or less',
@@ -79,7 +89,7 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Settings Page
     'settings.title': 'Settings',
-    'settings.subtitle': 'Customize your MyGTD experience and preferences.',
+    'settings.subtitle': 'Customize your EffectivO experience and preferences.',
     'settings.language.title': 'Language & Region',
     'settings.language.subtitle': 'Choose your preferred language',
     'settings.notifications.title': 'Notifications',
@@ -91,30 +101,30 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.ai.activeDesc': 'Your tasks will be automatically analyzed to identify 2-minute rule candidates.',
 
     // Landing Page
-    'landing.nav.subtitle': 'Getting Things Done',
+    'landing.nav.subtitle': 'Productive & Effective',
     'landing.nav.signIn': 'Sign In',
     'landing.nav.getStarted': 'Get Started Free',
 
     // Hero Section
-    'landing.hero.title': 'Master the',
-    'landing.hero.subtitle': 'Transform chaos into clarity with MyGTD. Built on proven productivity principles, our app helps you capture, organize, and execute everything that has your attention.',
+    'landing.hero.title': 'Master',
+    'landing.hero.subtitle': 'Transform chaos into clarity with EffectivO. Built on proven productivity principles, our app helps you capture, organize, and execute everything that has your attention.',
     'landing.hero.startFree': 'Start Free Today',
     'landing.hero.watchDemo': 'Watch Demo',
     'landing.hero.noCreditCard': '✨ No credit card required • 🚀 Set up in 2 minutes',
 
     // GTD Catchphrases
-    'landing.catchphrase.twoMinute': '2-Minute Rule',
+    'landing.catchphrase.twoMinute': 'the 2-Minute Rule',
     'landing.catchphrase.stressFree': 'Stress-Free Productivity',
     'landing.catchphrase.mindLikeWater': 'Mind Like Water',
-    'landing.catchphrase.captureEverything': 'Capture Everything',
+    'landing.catchphrase.captureEverything': 'Capturing Everything',
     'landing.catchphrase.weeklyReviews': 'Weekly Reviews',
     'landing.catchphrase.nextAction': 'Next Action Thinking',
-    'landing.catchphrase.trustedSystem': 'Trusted System',
-    'landing.catchphrase.clearMind': 'Clear Your Mind',
+    'landing.catchphrase.trustedSystem': 'the Trusted System',
+    'landing.catchphrase.clearMind': 'Clearing Your Mind',
 
     // Features Section
     'landing.features.title': 'Everything You Need for Stress-Free Productivity',
-    'landing.features.subtitle': 'MyGTD implements every aspect of the proven productivity methodology, giving you a complete system for managing your life and work stress-free.',
+    'landing.features.subtitle': 'EffectivO implements every aspect of proven productivity methodologies, giving you a complete system for managing your life and work stress-free.',
     'landing.features.inbox.title': 'Smart Inbox',
     'landing.features.inbox.description': 'Capture everything that has your attention in one trusted place. Never lose a thought or task again.',
     'landing.features.nextActions.title': 'Next Actions',
@@ -129,10 +139,10 @@ const translations: Record<Language, Record<string, string>> = {
     'landing.features.sync.description': 'Access your tasks anywhere, anytime. Changes sync instantly across all your devices.',
 
     // Benefits Section
-    'landing.benefits.title': 'Why Choose MyGTD?',
+    'landing.benefits.title': 'Why Choose EffectivO?',
     'landing.benefits.subtitle': 'Join thousands who\'ve transformed their productivity with our proven system.',
     'landing.benefits.clearMind.title': 'Clear Your Mind',
-    'landing.benefits.clearMind.description': 'Stop trying to remember everything. Let MyGTD be your external brain.',
+    'landing.benefits.clearMind.description': 'Stop trying to remember everything. Let EffectivO be your external brain.',
     'landing.benefits.focus.title': 'Focus on What Matters',
     'landing.benefits.focus.description': 'See exactly what needs your attention right now. No more overwhelm.',
     'landing.benefits.trusted.title': 'Trusted System',
@@ -179,12 +189,12 @@ const translations: Record<Language, Record<string, string>> = {
 
     // CTA Section
     'landing.cta.title': 'Ready to Get Things Done?',
-    'landing.cta.subtitle': 'Join thousands of productive people who trust MyGTD to manage their life and work. Start your stress-free productivity journey today.',
+    'landing.cta.subtitle': 'Join thousands of productive people who trust EffectivO to manage their life and work. Start your stress-free productivity journey today.',
     'landing.cta.button': 'Start Your Free Account',
     'landing.cta.guarantee': 'No credit card required • Cancel anytime • 30-day money-back guarantee',
 
     // Footer
-    'landing.footer.description': 'The complete Getting Things Done system for stress-free productivity.',
+    'landing.footer.description': 'The complete productivity system for stress-free task management.',
     'landing.footer.product': 'Product',
     'landing.footer.features': 'Features',
     'landing.footer.pricing': 'Pricing',
@@ -197,7 +207,7 @@ const translations: Record<Language, Record<string, string>> = {
     'landing.footer.helpCenter': 'Help Center',
     'landing.footer.privacy': 'Privacy Policy',
     'landing.footer.terms': 'Terms of Service',
-    'landing.footer.copyright': '© 2024 MyGTD. All rights reserved.',
+    'landing.footer.copyright': '© 2024 EffectivO. All rights reserved.',
 
     // Projects
     'projects.title': 'Projects',
@@ -217,8 +227,8 @@ const translations: Record<Language, Record<string, string>> = {
   },
   es: {
     // App Name
-    'app.name': 'MyGTD',
-    'app.description': 'Una aplicación de productividad inspirada en GTD para gestionar proyectos, tareas y próximas acciones',
+    'app.name': 'EffectivO',
+    'app.description': 'Una poderosa aplicación de productividad para gestionar proyectos, tareas y próximas acciones con asistencia inteligente de IA',
     
     // Navigation
     'nav.inbox': 'Bandeja de Entrada',
@@ -266,6 +276,16 @@ const translations: Record<Language, Record<string, string>> = {
     'language.english': 'Inglés',
     'language.spanish': 'Español',
 
+    // Authentication
+    'auth.signInWithGoogle': 'Continuar con Google',
+    'auth.signUpWithGoogle': 'Registrarse con Google',
+    'auth.orSignInWith': 'O inicia sesión con email',
+    'auth.orSignUpWith': 'O regístrate con email',
+    'auth.alreadyHaveAccount': '¿Ya tienes una cuenta?',
+    'auth.dontHaveAccount': '¿No tienes una cuenta?',
+    'auth.linkGoogleAccount': 'Vincular Cuenta de Google',
+    'auth.googleLinked': 'Cuenta de Google vinculada exitosamente',
+
     // AI Features
     'ai.twoMinuteRule.candidate': 'Candidato de Regla de 2 Minutos',
     'ai.twoMinuteRule.tooltip': 'IA sugiere que esta tarea podría tomar 2 minutos o menos',
@@ -280,7 +300,7 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Settings Page
     'settings.title': 'Configuración',
-    'settings.subtitle': 'Personaliza tu experiencia MyGTD y preferencias.',
+    'settings.subtitle': 'Personaliza tu experiencia EffectivO y preferencias.',
     'settings.language.title': 'Idioma y Región',
     'settings.language.subtitle': 'Elige tu idioma preferido',
     'settings.notifications.title': 'Notificaciones',
@@ -292,30 +312,30 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.ai.activeDesc': 'Tus tareas serán analizadas automáticamente para identificar candidatos de la regla de 2 minutos.',
 
     // Landing Page
-    'landing.nav.subtitle': 'Organización de Tareas',
+    'landing.nav.subtitle': 'Productivo y Efectivo',
     'landing.nav.signIn': 'Iniciar Sesión',
     'landing.nav.getStarted': 'Comenzar Gratis',
 
     // Hero Section
-    'landing.hero.title': 'Domina la',
-    'landing.hero.subtitle': 'Transforma el caos en claridad con MyGTD. Construido sobre principios de productividad probados, nuestra aplicación te ayuda a capturar, organizar y ejecutar todo lo que llama tu atención.',
+    'landing.hero.title': 'Domina',
+    'landing.hero.subtitle': 'Transforma el caos en claridad con EffectivO. Construido sobre principios de productividad probados, nuestra aplicación te ayuda a capturar, organizar y ejecutar todo lo que llama tu atención.',
     'landing.hero.startFree': 'Comienza Gratis Hoy',
     'landing.hero.watchDemo': 'Ver Demo',
     'landing.hero.noCreditCard': '✨ No se requiere tarjeta de crédito • 🚀 Configuración en 2 minutos',
 
     // GTD Catchphrases
-    'landing.catchphrase.twoMinute': 'Regla de 2 Minutos',
-    'landing.catchphrase.stressFree': 'Productividad Sin Estrés',
-    'landing.catchphrase.mindLikeWater': 'Mente Como el Agua',
-    'landing.catchphrase.captureEverything': 'Captura Todo',
-    'landing.catchphrase.weeklyReviews': 'Revisiones Semanales',
-    'landing.catchphrase.nextAction': 'Pensamiento de Próxima Acción',
-    'landing.catchphrase.trustedSystem': 'Sistema Confiable',
-    'landing.catchphrase.clearMind': 'Libera Tu Mente',
+    'landing.catchphrase.twoMinute': 'la Regla de 2 Minutos',
+    'landing.catchphrase.stressFree': 'la Productividad Sin Estrés',
+    'landing.catchphrase.mindLikeWater': 'la Mente Como el Agua',
+    'landing.catchphrase.captureEverything': 'Capturar Todo',
+    'landing.catchphrase.weeklyReviews': 'las Revisiones Semanales',
+    'landing.catchphrase.nextAction': 'el Pensamiento de Próxima Acción',
+    'landing.catchphrase.trustedSystem': 'el Sistema Confiable',
+    'landing.catchphrase.clearMind': 'Liberar Tu Mente',
 
     // Features Section
     'landing.features.title': 'Todo lo que Necesitas para una Productividad Sin Estrés',
-    'landing.features.subtitle': 'MyGTD implementa cada aspecto de la metodología de productividad probada, dándote un sistema completo para gestionar tu vida y trabajo sin estrés.',
+    'landing.features.subtitle': 'EffectivO implementa cada aspecto de metodologías de productividad probadas, dándote un sistema completo para gestionar tu vida y trabajo sin estrés.',
     'landing.features.inbox.title': 'Bandeja Inteligente',
     'landing.features.inbox.description': 'Captura todo lo que llama tu atención en un lugar confiable. Nunca pierdas un pensamiento o tarea nuevamente.',
     'landing.features.nextActions.title': 'Próximas Acciones',
@@ -330,10 +350,10 @@ const translations: Record<Language, Record<string, string>> = {
     'landing.features.sync.description': 'Accede a tus tareas en cualquier lugar, en cualquier momento. Los cambios se sincronizan instantáneamente en todos tus dispositivos.',
 
     // Benefits Section
-    'landing.benefits.title': '¿Por qué Elegir MyGTD?',
+    'landing.benefits.title': '¿Por qué Elegir EffectivO?',
     'landing.benefits.subtitle': 'Únete a miles de personas que han transformado su productividad con nuestro sistema probado.',
     'landing.benefits.clearMind.title': 'Libera Tu Mente',
-    'landing.benefits.clearMind.description': 'Deja de intentar recordar todo. Permite que MyGTD sea tu cerebro externo.',
+    'landing.benefits.clearMind.description': 'Deja de intentar recordar todo. Permite que EffectivO sea tu cerebro externo.',
     'landing.benefits.focus.title': 'Enfócate en lo que Importa',
     'landing.benefits.focus.description': 'Ve exactamente qué necesita tu atención ahora mismo. No más abrumamiento.',
     'landing.benefits.trusted.title': 'Sistema Confiable',
@@ -380,12 +400,12 @@ const translations: Record<Language, Record<string, string>> = {
 
     // CTA Section
     'landing.cta.title': '¿Listo para Organizar las Cosas?',
-    'landing.cta.subtitle': 'Únete a miles de personas productivas que confían en MyGTD para gestionar su vida y trabajo. Comienza tu viaje de productividad sin estrés hoy.',
+    'landing.cta.subtitle': 'Únete a miles de personas productivas que confían en EffectivO para gestionar su vida y trabajo. Comienza tu viaje de productividad sin estrés hoy.',
     'landing.cta.button': 'Comienza tu Cuenta Gratuita',
     'landing.cta.guarantee': 'No se requiere tarjeta de crédito • Cancela en cualquier momento • Garantía de reembolso de 30 días',
 
     // Footer
-    'landing.footer.description': 'El sistema completo de Organización de Tareas para productividad sin estrés.',
+    'landing.footer.description': 'El sistema completo de productividad para gestión de tareas sin estrés.',
     'landing.footer.product': 'Producto',
     'landing.footer.features': 'Funciones',
     'landing.footer.pricing': 'Precios',
@@ -398,7 +418,7 @@ const translations: Record<Language, Record<string, string>> = {
     'landing.footer.helpCenter': 'Centro de Ayuda',
     'landing.footer.privacy': 'Política de Privacidad',
     'landing.footer.terms': 'Términos de Servicio',
-    'landing.footer.copyright': '© 2024 MyGTD. Todos los derechos reservados.',
+    'landing.footer.copyright': '© 2024 EffectivO. Todos los derechos reservados.',
 
     // Projects
     'projects.title': 'Proyectos',

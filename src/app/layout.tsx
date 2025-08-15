@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MyGTD - Personal Task Management",
-  description: "A GTD-inspired productivity app for managing projects, tasks, and next actions",
+  title: "EffectivO - Personal Productivity Management",
+  description: "A powerful productivity app for managing projects, tasks, and next actions with smart AI assistance",
 };
 
 export default function RootLayout({

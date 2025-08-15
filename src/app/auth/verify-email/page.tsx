@@ -70,7 +70,7 @@ export default function VerifyEmailPage() {
       <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">MyGTD</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">EffectivO</h1>
             <h2 className="text-xl font-semibold text-gray-700 mb-6">Verifying email...</h2>
           </div>
         </div>
@@ -92,7 +92,7 @@ export default function VerifyEmailPage() {
       <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">MyGTD</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">EffectivO</h1>
             <h2 className="text-xl font-semibold text-gray-700 mb-6">Welcome back!</h2>
           </div>
         </div>
@@ -132,7 +132,7 @@ export default function VerifyEmailPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">MyGTD</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">EffectivO</h1>
           <h2 className="text-xl font-semibold text-gray-700 mb-6">Email verification failed</h2>
         </div>
       </div>

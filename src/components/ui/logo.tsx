@@ -62,9 +62,9 @@ export function Logo({ size = 'md', showSubtitle = true, className = '' }: LogoP
       {/* Text */}
       <div className="flex flex-col">
         <div className="flex items-center gap-1">
-          <span className={`${classes.title} text-gray-900`}>My</span>
+          <span className={`${classes.title} text-gray-900`}>Effectiv</span>
           <span className={`${classes.title} bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}>
-            GTD
+            O
           </span>
         </div>
         {showSubtitle && (

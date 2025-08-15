@@ -9,7 +9,10 @@ import {
   updateProfile,
   User,
   onAuthStateChanged,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup,
+  linkWithPopup
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
@@ -21,6 +24,55 @@ export interface AuthUser {
 }
 
 export class AuthService {
+  // Initialize Google Auth Provider
+  private static googleProvider = new GoogleAuthProvider();
+
+  // Sign in with Google
+  static async signInWithGoogle(): Promise<AuthUser> {
+    try {
+      // Configure Google provider to always show account selection
+      this.googleProvider.setCustomParameters({
+        prompt: 'select_account'
+      });
+
+      const userCredential = await signInWithPopup(auth, this.googleProvider);
+      const user = userCredential.user;
+      
+      return {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        emailVerified: user.emailVerified
+      };
+    } catch (error: unknown) {
+      const errorCode = error instanceof Error && 'code' in error ? (error as { code: string }).code : 'unknown';
+      throw new Error(this.getGoogleErrorMessage(errorCode));
+    }
+  }
+
+  // Link Google account to existing email/password account
+  static async linkWithGoogle(): Promise<AuthUser> {
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        throw new Error('No user is currently signed in');
+      }
+
+      const userCredential = await linkWithPopup(currentUser, this.googleProvider);
+      const user = userCredential.user;
+      
+      return {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        emailVerified: user.emailVerified
+      };
+    } catch (error: unknown) {
+      const errorCode = error instanceof Error && 'code' in error ? (error as { code: string }).code : 'unknown';
+      throw new Error(this.getGoogleErrorMessage(errorCode));
+    }
+  }
+
   // Sign up with email and password
   static async signUp(email: string, password: string, displayName?: string): Promise<AuthUser> {
     try {
@@ -197,6 +249,32 @@ export class AuthService {
         return 'This account has been disabled.';
       default:
         return 'An error occurred. Please try again.';
+    }
+  }
+
+  // Convert Google-specific error codes to user-friendly messages
+  private static getGoogleErrorMessage(errorCode: string): string {
+    switch (errorCode) {
+      case 'auth/popup-closed-by-user':
+        return 'Sign-in cancelled. Please try again.';
+      case 'auth/popup-blocked':
+        return 'Pop-up blocked by browser. Please allow pop-ups and try again.';
+      case 'auth/cancelled-popup-request':
+        return 'Sign-in cancelled. Please try again.';
+      case 'auth/account-exists-with-different-credential':
+        return 'An account already exists with the same email address but different sign-in credentials.';
+      case 'auth/credential-already-in-use':
+        return 'This Google account is already linked to another user.';
+      case 'auth/provider-already-linked':
+        return 'Google account is already linked to this user.';
+      case 'auth/requires-recent-login':
+        return 'Please sign out and sign in again before linking accounts.';
+      case 'auth/network-request-failed':
+        return 'Network error. Please check your internet connection.';
+      case 'auth/too-many-requests':
+        return 'Too many requests. Please try again later.';
+      default:
+        return this.getErrorMessage(errorCode);
     }
   }
 }

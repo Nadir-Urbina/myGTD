@@ -7,12 +7,14 @@ interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signUp: (email: string, password: string, displayName?: string) => Promise<void>;
   signOut: () => Promise<void>;
   sendSignInLink: (email: string) => Promise<void>;
   signInWithLink: (url: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   refreshUser: () => Promise<void>;
+  linkWithGoogle: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -46,6 +48,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setLoading(true);
     try {
       await AuthService.signIn(email, password);
+      // User state will be updated by the onAuthStateChanged listener
+    } catch (error) {
+      setLoading(false);
+      throw error;
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    setLoading(true);
+    try {
+      await AuthService.signInWithGoogle();
       // User state will be updated by the onAuthStateChanged listener
     } catch (error) {
       setLoading(false);
@@ -110,16 +123,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  const linkWithGoogle = async () => {
+    try {
+      await AuthService.linkWithGoogle();
+      // Refresh user data after linking
+      await refreshUser();
+    } catch (error) {
+      throw error;
+    }
+  };
+
   const value = {
     user,
     loading,
     signIn,
+    signInWithGoogle,
     signUp,
     signOut,
     sendSignInLink,
     signInWithLink,
     resetPassword,
-    refreshUser
+    refreshUser,
+    linkWithGoogle
   };
 
   return (

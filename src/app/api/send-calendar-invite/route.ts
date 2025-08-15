@@ -25,7 +25,7 @@ function generateICS(action: NextAction): string {
   const icsContent = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//MyGTD//MyGTD App//EN',
+    'PRODID:-//EffectivO//EffectivO App//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:REQUEST',
     'BEGIN:VEVENT',
@@ -34,7 +34,7 @@ function generateICS(action: NextAction): string {
     `DTSTART:${startDateStr}`,
     `DTEND:${endDateStr}`,
     `SUMMARY:${action.title}`,
-    `DESCRIPTION:${action.description || 'Scheduled next action from MyGTD'}`,
+    `DESCRIPTION:${action.description || 'Scheduled next action from EffectivO'}`,
     `LOCATION:${action.context || ''}`,
     `STATUS:CONFIRMED`,
     `SEQUENCE:0`,
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
     const emailSubject = `Calendar Invite: ${action.title}`;
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #1f2937;">MyGTD Calendar Invite</h2>
+        <h2 style="color: #1f2937;">EffectivO Calendar Invite</h2>
         
         <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
           <h3 style="margin: 0 0 10px 0; color: #374151;">${action.title}</h3>
@@ -128,19 +128,19 @@ export async function POST(request: NextRequest) {
         </div>
         
         <p style="color: #6b7280; font-size: 14px;">
-          This calendar invite was generated from your MyGTD app. 
+          This calendar invite was generated from your EffectivO app. 
           Accept this invite to block time in your calendar for this next action.
         </p>
         
         <p style="color: #6b7280; font-size: 12px; margin-top: 30px;">
-          Sent by MyGTD - Getting Things Done, digitally.
+          Sent by EffectivO - Productive & Effective.
         </p>
       </div>
     `;
 
     // Send email with ICS attachment to all recipients
     const result = await resend.emails.send({
-      from: 'MyGTD Calendar <noreply@mygtd.app>',
+      from: 'EffectivO Calendar <noreply@effectivo.app>',
       to: emailAddresses,
       subject: emailSubject,
       html: emailHtml,

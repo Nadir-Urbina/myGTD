@@ -1,3 +1,7 @@
+# EffectivO
+
+EffectivO is a powerful productivity management application built with Next.js that helps you capture, organize, and execute everything that has your attention. Built on proven productivity principles with smart AI assistance.
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

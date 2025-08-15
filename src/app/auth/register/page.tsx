@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
+import { useLanguage } from '@/contexts/language-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { GoogleSignInButton } from '@/components/ui/google-sign-in-button';
 import { Mail, Lock, User, UserPlus, Eye, EyeOff } from 'lucide-react';
 
 export default function RegisterPage() {
@@ -21,7 +23,8 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   
-  const { signUp } = useAuth();
+  const { signUp, signInWithGoogle } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
 
   const handleInputChange = (field: string, value: string) => {
@@ -75,12 +78,22 @@ export default function RegisterPage() {
     }
   };
 
+  const handleGoogleSignUp = async () => {
+    setError('');
+    try {
+      await signInWithGoogle();
+      // User will be redirected automatically via auth context
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to sign up with Google');
+    }
+  };
+
   if (success) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">MyGTD</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">EffectivO</h1>
             <h2 className="text-xl font-semibold text-gray-700 mb-6">Account created successfully!</h2>
           </div>
         </div>
@@ -120,13 +133,32 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">MyGTD</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">EffectivO</h1>
           <h2 className="text-xl font-semibold text-gray-700 mb-6">Create your account</h2>
         </div>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          {/* Google Sign-Up Button */}
+          <div className="mb-6">
+            <GoogleSignInButton
+              onClick={handleGoogleSignUp}
+              variant="signup"
+              disabled={loading}
+            />
+          </div>
+
+          {/* Divider */}
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">{t('auth.orSignUpWith')}</span>
+            </div>
+          </div>
+
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
               <div className="rounded-md bg-red-50 p-4">

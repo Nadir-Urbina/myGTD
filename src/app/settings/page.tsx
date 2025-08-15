@@ -198,7 +198,7 @@ export default function SettingsPage() {
         {/* Footer */}
         <div className="mt-12 p-6 bg-gray-50 rounded-lg">
           <div className="text-center text-gray-600">
-            <p className="mb-2">MyGTD - Personal Task Management</p>
+            <p className="mb-2">EffectivO - Personal Productivity Management</p>
             <p className="text-sm">Built with ❤️ for productivity enthusiasts</p>
           </div>
         </div>
