@@ -6,9 +6,10 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { useLanguage } from '@/contexts/language-context';
 import { cn } from '@/lib/utils';
-import { Inbox, CheckSquare, Calendar, FolderOpen, Menu, X, User, LogOut, ChevronDown, Cloud, Settings } from 'lucide-react';
+import { Inbox, CheckSquare, Calendar, FolderOpen, Menu, X, User, LogOut, ChevronDown, Cloud, Settings, BarChart3, BookOpen } from 'lucide-react';
 import { LanguageToggle } from '@/components/ui/language-toggle';
 import { Logo, LogoMark } from '@/components/ui/logo';
+import { WeeklyReviewModal } from '@/components/ui/weekly-review-modal';
 
 export function Navigation() {
   const pathname = usePathname();
@@ -48,6 +49,12 @@ export function Navigation() {
       description: t('nav.maybeSomeday.description'),
     },
     {
+      name: t('reference.title'),
+      href: '/reference',
+      icon: BookOpen,
+      description: t('reference.description'),
+    },
+    {
       name: t('nav.settings'),
       href: '/settings',
       icon: Settings,
@@ -56,6 +63,7 @@ export function Navigation() {
   ];
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isWeeklyReviewOpen, setIsWeeklyReviewOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const mobileUserMenuRef = useRef<HTMLDivElement>(null);
 
@@ -185,6 +193,20 @@ export function Navigation() {
               );
             })}
           </div>
+
+          {/* Weekly Review Button */}
+          <div className="mt-8 pt-4 border-t border-gray-200">
+            <button
+              onClick={() => setIsWeeklyReviewOpen(true)}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-md"
+            >
+              <BarChart3 className="h-5 w-5" />
+              <div className="text-left">
+                <div>{t('weeklyReview.title')}</div>
+                <div className="text-xs text-purple-100">{t('weeklyReview.subtitle')}</div>
+              </div>
+            </button>
+          </div>
         </div>
         
         {/* User Menu - Desktop */}
@@ -254,8 +276,35 @@ export function Navigation() {
               );
             })}
           </div>
+
+          {/* Weekly Review Button - Mobile */}
+          <div className="mt-8 pt-4 border-t border-gray-200">
+            <button
+              onClick={() => {
+                setIsWeeklyReviewOpen(true);
+                closeMobileMenu();
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-md"
+            >
+              <BarChart3 className="h-5 w-5" />
+              <div className="text-left">
+                <div>{t('weeklyReview.title')}</div>
+                <div className="text-xs text-purple-100">{t('weeklyReview.subtitle')}</div>
+              </div>
+            </button>
+          </div>
         </div>
       </nav>
+
+      {/* Weekly Review Modal */}
+      <WeeklyReviewModal
+        isOpen={isWeeklyReviewOpen}
+        onClose={() => setIsWeeklyReviewOpen(false)}
+        onComplete={() => {
+          // Could show a success message or refresh data
+          console.log('Weekly review completed!');
+        }}
+      />
     </>
   );
 } 

@@ -164,7 +164,7 @@ export default function InboxPage() {
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
                   {t('inbox.needsProcessing')} ({unprocessedItems.length})
                 </h2>
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 divide-y">
+                <div className="space-y-4">
                   {unprocessedItems.map((item) => (
                     <AITaskCard
                       key={item.id}
@@ -172,7 +172,7 @@ export default function InboxPage() {
                       taskDescription={item.description}
                       className="relative"
                     >
-                      <div className="p-4 hover:bg-gray-50 transition-colors">
+                      <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-0">
                           <Link href={`/inbox/${item.id}`} className="flex-1 min-w-0">
                             <div className="cursor-pointer">
@@ -228,9 +228,9 @@ export default function InboxPage() {
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
                   {t('inbox.processed')} ({processedItems.length})
                 </h2>
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 divide-y">
+                <div className="space-y-4">
                   {processedItems.map((item) => (
-                    <div key={item.id} className="p-4 hover:bg-gray-50 transition-colors opacity-60">
+                    <div key={item.id} className="p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors opacity-60">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-0">
                         <div className="flex-1 min-w-0">
                           <h3 className="font-medium text-gray-900 truncate">

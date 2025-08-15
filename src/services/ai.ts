@@ -8,9 +8,11 @@ const openai = new OpenAI({
 
 export interface TaskAnalysis {
   is2MinuteCandidate: boolean;
+  isProjectCandidate: boolean;
   confidence: number; // 0-1 scale
   reasoning?: string;
   estimatedDuration?: string;
+  projectReasoning?: string;
 }
 
 // AI Model Configuration - easily switch between cost-efficient models
@@ -51,6 +53,57 @@ export class AIService {
   }
 
   /**
+   * Analyze a task and cache results in Firestore to avoid repeated API calls
+   */
+  async analyzeTaskWithCaching(
+    userId: string, 
+    itemId: string, 
+    taskTitle: string, 
+    taskDescription?: string,
+    existingAnalysis?: { 
+      is2MinuteRuleCandidate?: boolean;
+      isProjectCandidate?: boolean;
+      aiAnalysisDate?: Date;
+      aiAnalysisData?: {
+        confidence: number;
+        reasoning?: string;
+        estimatedDuration?: string;
+        projectReasoning?: string;
+      };
+    }
+  ): Promise<TaskAnalysis> {
+    // Check if we already have valid cached analysis (within last 30 days)
+    if (existingAnalysis?.aiAnalysisDate) {
+      const daysSinceAnalysis = (Date.now() - existingAnalysis.aiAnalysisDate.getTime()) / (1000 * 60 * 60 * 24);
+      
+      if (daysSinceAnalysis < 30 && 
+          existingAnalysis.is2MinuteRuleCandidate !== undefined && 
+          existingAnalysis.isProjectCandidate !== undefined) {
+        
+        // Return cached analysis
+        return {
+          is2MinuteCandidate: existingAnalysis.is2MinuteRuleCandidate,
+          isProjectCandidate: existingAnalysis.isProjectCandidate,
+          confidence: existingAnalysis.aiAnalysisData?.confidence || 0.8,
+          reasoning: existingAnalysis.aiAnalysisData?.reasoning,
+          estimatedDuration: existingAnalysis.aiAnalysisData?.estimatedDuration,
+          projectReasoning: existingAnalysis.aiAnalysisData?.projectReasoning
+        };
+      }
+    }
+
+    // Perform fresh analysis
+    const analysis = await this.analyzeTask(taskTitle, taskDescription);
+    
+    // Save results to Firestore (don't await to avoid blocking UI)
+    this.saveAnalysisToFirestore(userId, itemId, analysis).catch(error => {
+      console.warn('Failed to save AI analysis to Firestore:', error);
+    });
+
+    return analysis;
+  }
+
+  /**
    * Analyze a task to determine if it might be a 2-minute rule candidate
    */
   async analyzeTask(taskTitle: string, taskDescription?: string): Promise<TaskAnalysis> {
@@ -70,9 +123,13 @@ export class AIService {
         messages: [
           {
             role: 'system',
-            content: `You are an expert in Getting Things Done (GTD) methodology. Your job is to analyze tasks and determine if they could be completed in 2 minutes or less according to the GTD 2-minute rule.
+            content: `You are an expert in Getting Things Done (GTD) methodology. Your job is to analyze tasks and determine:
 
-The 2-minute rule states: "If something takes less than 2 minutes to do, do it now rather than adding it to your system."
+1. **2-MINUTE RULE**: If they could be completed in 2 minutes or less
+2. **PROJECT CANDIDATE**: If they require more than 2 steps (should become a project)
+
+## 2-MINUTE RULE ANALYSIS:
+"If something takes less than 2 minutes to do, do it now rather than adding it to your system."
 
 Examples of 2-minute tasks:
 - Sending a quick email or text
@@ -84,23 +141,31 @@ Examples of 2-minute tasks:
 - Taking out trash
 - Replying to a message
 
-Examples of NOT 2-minute tasks:
-- Writing a report
-- Planning a project
-- Complex research
-- Long meetings
-- Creative work
-- Learning something new
-- Shopping for multiple items
+## PROJECT CANDIDATE ANALYSIS:
+"If a task will take more than 2 steps to complete, it should become a project."
+
+Examples of project candidates:
+- "Organize home office" (clean, declutter, reorganize, file documents)
+- "Plan vacation" (research destinations, book flights, reserve hotels, plan activities)
+- "Hire new employee" (write job description, post job, interview candidates, make offer)
+- "Launch website" (design, develop, test, deploy, promote)
+- "Learn Spanish" (buy materials, schedule classes, practice daily, take tests)
+
+Examples of NOT project candidates:
+- "Call John about meeting" (single step)
+- "Buy milk" (single step)
+- "Send report to manager" (single step)
 
 IMPORTANT: Respond with ONLY a valid JSON object (no markdown, no code blocks, no explanations). The JSON must contain:
 - is2MinuteCandidate: boolean
-- confidence: number (0-1)
-- reasoning: string (brief explanation)
+- isProjectCandidate: boolean  
+- confidence: number (0-1, confidence in the 2-minute analysis)
+- reasoning: string (brief explanation for 2-minute rule)
 - estimatedDuration: string (like "1-2 minutes", "5-10 minutes", etc.)
+- projectReasoning: string (brief explanation if it's a project candidate)
 
 Example response format:
-{"is2MinuteCandidate": true, "confidence": 0.8, "reasoning": "Quick email response", "estimatedDuration": "1-2 minutes"}`
+{"is2MinuteCandidate": false, "isProjectCandidate": true, "confidence": 0.9, "reasoning": "Requires planning and coordination", "estimatedDuration": "2-3 hours", "projectReasoning": "Multiple steps: research, plan, coordinate, execute"}`
           },
           {
             role: 'user',
@@ -145,6 +210,7 @@ Example response format:
       // Fallback analysis based on simple heuristics
       const fallbackAnalysis: TaskAnalysis = {
         is2MinuteCandidate: this.simpleFallbackAnalysis(taskTitle, taskDescription),
+        isProjectCandidate: false, // Conservative fallback
         confidence: 0.3,
         reasoning: 'AI analysis unavailable, using simple heuristics',
         estimatedDuration: 'Unknown'
@@ -251,6 +317,48 @@ Example response format:
       size: this.cache.size,
       keys: Array.from(this.cache.keys())
     };
+  }
+
+  /**
+   * Save AI analysis results to Firestore to cache them
+   */
+  private async saveAnalysisToFirestore(
+    userId: string, 
+    itemId: string, 
+    analysis: TaskAnalysis
+  ): Promise<void> {
+    try {
+      const { doc, updateDoc, Timestamp } = await import('firebase/firestore');
+      const { db } = await import('@/lib/firebase');
+      
+      // Try updating in inbox first, then next actions if not found
+      const collections = ['inbox', 'nextActions', 'maybeSomeday'];
+      
+      for (const collectionName of collections) {
+        try {
+          const docRef = doc(db, `users/${userId}/${collectionName}`, itemId);
+          await updateDoc(docRef, {
+            is2MinuteRuleCandidate: analysis.is2MinuteCandidate,
+            isProjectCandidate: analysis.isProjectCandidate,
+            aiAnalysisDate: Timestamp.now(),
+            aiAnalysisData: {
+              confidence: analysis.confidence,
+              reasoning: analysis.reasoning,
+              estimatedDuration: analysis.estimatedDuration,
+              projectReasoning: analysis.projectReasoning
+            },
+            updatedAt: Timestamp.now()
+          });
+          break; // Success, exit loop
+        } catch {
+          // Continue to next collection if this one fails
+          continue;
+        }
+      }
+    } catch (error) {
+      console.error('Failed to save analysis to Firestore:', error);
+      throw error;
+    }
   }
 }
 

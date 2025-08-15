@@ -87,7 +87,7 @@ export const NextActionsList = ({
             </div>
 
             {actions.length > 0 ? (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 divide-y">
+              <div className="space-y-4">
                 {actions.map((action) => (
                   <AITaskCard
                     key={action.id}
@@ -95,8 +95,16 @@ export const NextActionsList = ({
                     taskDescription={action.description}
                     className="relative"
                     enableAI={action.status !== NextActionStatus.DONE}
+                    userId={action.userId}
+                    itemId={action.id}
+                    existingAnalysis={{
+                      is2MinuteRuleCandidate: action.is2MinuteRuleCandidate,
+                      isProjectCandidate: action.isProjectCandidate,
+                      aiAnalysisDate: action.aiAnalysisDate,
+                      aiAnalysisData: action.aiAnalysisData
+                    }}
                   >
-                    <div className="p-4 hover:bg-gray-50 transition-colors">
+                    <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors">
                       <div className="flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-0">
                         <div 
                           className="flex-1 min-w-0 cursor-pointer"

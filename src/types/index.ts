@@ -6,6 +6,17 @@ export interface BaseItem {
   createdAt: Date;
   updatedAt: Date;
   userId: string;
+  
+  // AI Analysis results (cached to avoid repeated API calls)
+  is2MinuteRuleCandidate?: boolean;
+  isProjectCandidate?: boolean;
+  aiAnalysisDate?: Date;
+  aiAnalysisData?: {
+    confidence: number;
+    reasoning?: string;
+    estimatedDuration?: string;
+    projectReasoning?: string; // reasoning for project candidate suggestion
+  };
 }
 
 export interface InboxItem extends BaseItem {
