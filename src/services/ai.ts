@@ -15,6 +15,18 @@ export interface TaskAnalysis {
   projectReasoning?: string;
 }
 
+export interface IssueComplexityAnalysis {
+  complexity: 'simple' | 'moderate' | 'complex';
+  reasoning: string;
+  confidence: number; // 0-1 scale
+  suggestedBreakdown?: string[]; // suggested subtasks if complex
+  estimatedTimeRange?: string; // e.g., "2-4 hours", "1-2 days"
+  relatedIssues?: string[]; // IDs of potentially related issues
+  recommendedApproach?: string; // suggested approach for implementation
+  technicalConsiderations?: string[]; // technical aspects to consider
+  helpfulLinks?: Array<{ title: string; url: string; description?: string }>; // relevant documentation/resources
+}
+
 // AI Model Configuration - easily switch between cost-efficient models
 const AI_CONFIG = {
   // Most cost-efficient option for 2025
@@ -360,6 +372,161 @@ Example response format:
       throw error;
     }
   }
+
+  /**
+   * Analyze an issue for complexity and effort estimation
+   */
+  async analyzeIssueComplexity(
+    issueTitle: string, 
+    issueDescription?: string,
+    issueType?: string,
+    reproductionSteps?: string,
+    acceptanceCriteria?: string
+  ): Promise<IssueComplexityAnalysis> {
+    // Create cache key
+    const cacheKey = `issue_${issueTitle}|${issueDescription || ''}|${issueType || ''}`;
+    
+    // Check cache first
+    if (this.issueCache.has(cacheKey)) {
+      return this.issueCache.get(cacheKey)!;
+    }
+
+    try {
+      const prompt = this.buildIssueAnalysisPrompt(
+        issueTitle, 
+        issueDescription, 
+        issueType,
+        reproductionSteps,
+        acceptanceCriteria
+      );
+      
+      const response = await openai.chat.completions.create({
+        model: AI_CONFIG.model,
+        messages: [
+          {
+            role: 'system',
+            content: `You are an expert software engineering consultant specializing in issue complexity analysis and effort estimation. Your job is to analyze development issues and determine:
+
+1. **COMPLEXITY LEVEL**: Whether the issue is simple, moderate, or complex
+2. **EFFORT ESTIMATION**: How much time it would likely take to implement
+3. **IMPLEMENTATION APPROACH**: Recommended approach and breakdown
+
+## COMPLEXITY DEFINITIONS:
+
+**SIMPLE** (1-4 hours):
+- UI text changes, simple styling updates
+- Adding basic form fields or validation
+- Small bug fixes with clear root cause
+- Configuration changes
+- Simple API endpoint additions
+
+**MODERATE** (1-3 days):
+- New feature implementations with moderate scope
+- Database schema changes with migrations
+- Integration with external APIs
+- Complex UI components with state management
+- Bug fixes requiring investigation across multiple files
+
+**COMPLEX** (1+ weeks):
+- Major architectural changes
+- New system integrations
+- Performance optimization projects
+- Large-scale refactoring
+- Features requiring multiple components/services
+- Complex algorithms or data processing
+
+IMPORTANT: Respond with ONLY a valid JSON object (no markdown, no code blocks). The JSON must contain:
+- complexity: "simple" | "moderate" | "complex"
+- reasoning: string (brief explanation)
+- confidence: number (0-1)
+- estimatedTimeRange: string (e.g., "2-4 hours", "1-2 days")
+- suggestedBreakdown: string[] (if complex, suggest subtasks)
+- recommendedApproach: string (suggested implementation approach)
+- technicalConsiderations: string[] (technical aspects to consider)
+- helpfulLinks: array of {title: string, url: string, description?: string} (relevant docs/tutorials)
+
+Example response:
+{"complexity": "moderate", "reasoning": "Requires database changes and API updates", "confidence": 0.85, "estimatedTimeRange": "1-2 days", "suggestedBreakdown": ["Update database schema", "Modify API endpoints", "Update frontend components"], "recommendedApproach": "Start with backend changes, then update frontend", "technicalConsiderations": ["Consider data migration strategy", "Ensure backward compatibility"], "helpfulLinks": [{"title": "Database Migration Guide", "url": "https://docs.example.com/migrations", "description": "Best practices for safe schema changes"}]}`
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        max_tokens: 250, // Increased for more detailed analysis
+        temperature: AI_CONFIG.temperature,
+      });
+
+      const content = response.choices[0]?.message?.content;
+      if (!content) {
+        throw new Error('No response from AI');
+      }
+
+      let analysis: IssueComplexityAnalysis;
+      try {
+        analysis = JSON.parse(content);
+      } catch (parseError) {
+        console.error('Failed to parse AI response:', content);
+        throw new Error('Invalid AI response format');
+      }
+
+      // Validate the response
+      if (!analysis.complexity || !analysis.reasoning || typeof analysis.confidence !== 'number') {
+        throw new Error('Incomplete AI analysis response');
+      }
+
+      // Cache the result
+      this.issueCache.set(cacheKey, analysis);
+
+      return analysis;
+    } catch (error) {
+      console.error('Error analyzing issue complexity:', error);
+      // Return fallback analysis
+      return {
+        complexity: 'moderate',
+        reasoning: 'Unable to analyze complexity automatically',
+        confidence: 0.3,
+        estimatedTimeRange: '1-2 days',
+        recommendedApproach: 'Break down into smaller tasks and tackle systematically'
+      };
+    }
+  }
+
+  /**
+   * Build the prompt for issue complexity analysis
+   */
+  private buildIssueAnalysisPrompt(
+    title: string, 
+    description?: string, 
+    type?: string,
+    reproductionSteps?: string,
+    acceptanceCriteria?: string
+  ): string {
+    let prompt = `Issue Title: "${title}"\n`;
+    
+    if (type) {
+      prompt += `Issue Type: ${type}\n`;
+    }
+    
+    if (description) {
+      prompt += `Description: ${description}\n`;
+    }
+    
+    if (reproductionSteps) {
+      prompt += `Reproduction Steps: ${reproductionSteps}\n`;
+    }
+    
+    if (acceptanceCriteria) {
+      prompt += `Acceptance Criteria: ${acceptanceCriteria}\n`;
+    }
+    
+    prompt += '\nPlease analyze this issue for complexity and provide effort estimation.';
+    
+    return prompt;
+  }
+
+  // Add issue cache
+  private issueCache = new Map<string, IssueComplexityAnalysis>();
 }
 
 // Export singleton instance

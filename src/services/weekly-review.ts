@@ -42,6 +42,7 @@ export class WeeklyReviewService {
     const inboxStats = await this.calculateInboxStats(inboxItems, weekStart, weekEnd);
     const nextActionStats = this.calculateNextActionStats(nextActions, weekStart, weekEnd);
     const projectStats = this.calculateProjectStats(projects, weekStart, weekEnd);
+    const issueStats = await this.calculateIssueStats(userId, weekStart, weekEnd);
     const flowStats = this.calculateFlowStats(inboxItems, nextActions, weekStart, weekEnd);
     const insights = await this.generateInsights(inboxItems, nextActions, projects);
 
@@ -51,6 +52,7 @@ export class WeeklyReviewService {
       inbox: inboxStats,
       nextActions: nextActionStats,
       projects: projectStats,
+      issues: issueStats,
       flow: flowStats,
       insights
     };
@@ -216,6 +218,32 @@ export class WeeklyReviewService {
     };
   }
 
+  // Calculate issue statistics
+  private static async calculateIssueStats(
+    userId: string,
+    weekStart: Date,
+    weekEnd: Date
+  ) {
+    // For now, return empty stats since we're still implementing the issue system
+    // TODO: Implement actual issue statistics calculation
+    return {
+      totalOpen: 0,
+      totalInProgress: 0,
+      resolvedThisWeek: 0,
+      createdThisWeek: 0,
+      overdueIssues: 0,
+      averageResolutionTime: 0,
+      issuesByType: [],
+      issuesByPriority: [],
+      mostActiveProject: undefined,
+      complexityDistribution: {
+        simple: 0,
+        moderate: 0,
+        complex: 0
+      }
+    };
+  }
+
   // Calculate flow statistics
   private static calculateFlowStats(
     inboxItems: InboxItem[], 
@@ -240,6 +268,10 @@ export class WeeklyReviewService {
       action.completedDate <= weekEnd
     ).length;
 
+    // Count issues converted to next actions this week
+    // For now, we'll set this to 0 as we don't have the issue conversion tracking yet
+    const issuesToNextActions = 0;
+
     // Calculate productivity velocity (simplified - could be more sophisticated)
     const thisWeekCompleted = nextActionsToDone;
     const lastWeekStart = new Date(weekStart.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -260,6 +292,7 @@ export class WeeklyReviewService {
       newItemsCaptured,
       inboxToNextActions,
       nextActionsToDone,
+      issuesToNextActions,
       productivityVelocity
     };
   }
@@ -327,6 +360,7 @@ export class WeeklyReviewService {
 
     return {
       twoMinuteRuleSuggestions,
+      issueComplexitySuggestions: [], // TODO: Implement issue complexity suggestions
       recommendations,
       productivityTrends
     };

@@ -39,12 +39,43 @@ export interface WeeklyReviewStats {
       isStalled: boolean;
     }>;
   };
+
+  // Issues statistics
+  issues: {
+    totalOpen: number;
+    totalInProgress: number;
+    resolvedThisWeek: number;
+    createdThisWeek: number;
+    overdueIssues: number; // issues open for more than 2 weeks
+    averageResolutionTime: number; // in days
+    issuesByType: Array<{
+      type: 'bug' | 'feature' | 'improvement' | 'research' | 'question';
+      count: number;
+      resolved: number;
+    }>;
+    issuesByPriority: Array<{
+      priority: 'low' | 'medium' | 'high' | 'critical';
+      count: number;
+      resolved: number;
+    }>;
+    mostActiveProject?: {
+      projectId: string;
+      projectTitle: string;
+      issueCount: number;
+    };
+    complexityDistribution: {
+      simple: number;
+      moderate: number;
+      complex: number;
+    };
+  };
   
   // System flow metrics
   flow: {
     newItemsCaptured: number;
     inboxToNextActions: number;
     nextActionsToDone: number;
+    issuesToNextActions: number; // issues promoted to next actions this week
     productivityVelocity: number; // percentage change vs last week
   };
   
@@ -55,6 +86,14 @@ export interface WeeklyReviewStats {
       title: string;
       confidence: number;
       reasoning: string;
+    }>;
+    issueComplexitySuggestions: Array<{
+      issueId: string;
+      title: string;
+      complexity: 'simple' | 'moderate' | 'complex';
+      confidence: number;
+      recommendedApproach?: string;
+      suggestedBreakdown?: string[];
     }>;
     recommendations: string[];
     productivityTrends: Array<{

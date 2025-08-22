@@ -16,7 +16,7 @@ import {
   DocumentData
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { InboxItem, NextAction, Project, ProjectTask, NextActionStatus, ProjectStatus, ProjectTaskStatus, MaybeSomedayItem, MaybeSomedayStatus } from '@/types';
+import { InboxItem, NextAction, Project, ProjectTask, NextActionStatus, ProjectStatus, ProjectTaskStatus, MaybeSomedayItem, MaybeSomedayStatus, Issue, IssueTracker, IssueStatus, IssueType, IssuePriority } from '@/types';
 
 // Firestore timestamp interface
 interface FirestoreTimestamp {
@@ -34,6 +34,9 @@ const convertTimestamps = (data: Record<string, unknown>) => ({
   updatedAt: (data.updatedAt as FirestoreTimestamp)?.toDate() || new Date(),
   scheduledDate: (data.scheduledDate as FirestoreTimestamp)?.toDate(),
   completedDate: (data.completedDate as FirestoreTimestamp)?.toDate(),
+  reviewDate: (data.reviewDate as FirestoreTimestamp)?.toDate(),
+  resolvedAt: (data.resolvedAt as FirestoreTimestamp)?.toDate(),
+  closedAt: (data.closedAt as FirestoreTimestamp)?.toDate(),
 });
 
 // Inbox Operations
@@ -730,5 +733,504 @@ export const maybeSomedayService = {
     batch.delete(maybeSomedayRef);
     
     await batch.commit();
+  },
+};
+
+// Issue Trackers Operations
+export const issueTrackersService = {
+  // Get all issue trackers for a user
+  async getIssueTrackers(userId: string): Promise<IssueTracker[]> {
+    const q = query(
+      collection(db, `users/${userId}/issueTrackers`),
+      orderBy('createdAt', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...convertTimestamps(doc.data())
+    } as unknown)) as IssueTracker[];
+  },
+
+  // Subscribe to issue trackers changes
+  subscribeToIssueTrackers(userId: string, callback: (trackers: IssueTracker[]) => void) {
+    const q = query(
+      collection(db, `users/${userId}/issueTrackers`),
+      orderBy('createdAt', 'desc')
+    );
+    return onSnapshot(q, (snapshot) => {
+      const trackers = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...convertTimestamps(doc.data())
+      } as unknown)) as IssueTracker[];
+      callback(trackers);
+    });
+  },
+
+  // Get issue tracker by ID
+  async getIssueTracker(userId: string, trackerId: string): Promise<IssueTracker | null> {
+    const docRef = doc(db, `users/${userId}/issueTrackers`, trackerId);
+    const snapshot = await getDocs(query(collection(db, `users/${userId}/issueTrackers`), where('__name__', '==', trackerId)));
+    
+    if (!snapshot.empty) {
+      const data = snapshot.docs[0].data();
+      return {
+        id: trackerId,
+        ...convertTimestamps(data)
+      } as unknown as IssueTracker;
+    }
+    return null;
+  },
+
+  // Add new issue tracker
+  async addIssueTracker(userId: string, tracker: Omit<IssueTracker, 'id' | 'userId' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    const now = Timestamp.now();
+    
+    const docData: FirestoreCreateData = {
+      title: tracker.title, // IssueTracker extends BaseItem, so it has title
+      name: tracker.name,
+      userId,
+      createdAt: now,
+      updatedAt: now,
+      settings: tracker.settings,
+    };
+    
+    // Only add fields that are not undefined
+    if (tracker.description !== undefined) {
+      docData.description = tracker.description;
+    }
+    if (tracker.notes !== undefined) {
+      docData.notes = tracker.notes;
+    }
+    if (tracker.projectId !== undefined) {
+      docData.projectId = tracker.projectId;
+    }
+    if (tracker.issueCount !== undefined) {
+      docData.issueCount = tracker.issueCount;
+    }
+    if (tracker.lastActivityAt !== undefined) {
+      docData.lastActivityAt = Timestamp.fromDate(tracker.lastActivityAt);
+    }
+    
+    const docRef = await addDoc(collection(db, `users/${userId}/issueTrackers`), docData);
+    return docRef.id;
+  },
+
+  // Update issue tracker
+  async updateIssueTracker(userId: string, trackerId: string, updates: Partial<IssueTracker>): Promise<void> {
+    const docRef = doc(db, `users/${userId}/issueTrackers`, trackerId);
+    const updateData: FirestoreUpdateData = {
+      updatedAt: Timestamp.now(),
+    };
+    
+    // Only add fields that are not undefined
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value !== undefined) {
+        if (key === 'lastActivityAt' && value instanceof Date) {
+          updateData[key] = Timestamp.fromDate(value);
+        } else {
+          updateData[key] = value;
+        }
+      }
+    });
+    
+    await updateDoc(docRef, updateData);
+  },
+
+  // Delete issue tracker (also deletes all associated issues)
+  async deleteIssueTracker(userId: string, trackerId: string): Promise<void> {
+    const batch = writeBatch(db);
+    
+    // Delete the tracker
+    const trackerRef = doc(db, `users/${userId}/issueTrackers`, trackerId);
+    batch.delete(trackerRef);
+    
+    // Delete all issues in this tracker
+    const issuesSnapshot = await getDocs(
+      query(
+        collection(db, `users/${userId}/issues`),
+        where('issueTrackerId', '==', trackerId)
+      )
+    );
+    
+    issuesSnapshot.docs.forEach(issueDoc => {
+      batch.delete(issueDoc.ref);
+    });
+    
+    await batch.commit();
+  },
+
+  // Get issue trackers by project
+  async getIssueTrackersByProject(userId: string, projectId: string): Promise<IssueTracker[]> {
+    const q = query(
+      collection(db, `users/${userId}/issueTrackers`),
+      where('projectId', '==', projectId),
+      orderBy('createdAt', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...convertTimestamps(doc.data())
+    } as unknown)) as IssueTracker[];
+  },
+
+  // Update issue count for a tracker (called when issues are added/removed)
+  async updateIssueCount(userId: string, trackerId: string): Promise<void> {
+    const issuesSnapshot = await getDocs(
+      query(
+        collection(db, `users/${userId}/issues`),
+        where('issueTrackerId', '==', trackerId)
+      )
+    );
+    
+    const issueCount = issuesSnapshot.size;
+    
+    await this.updateIssueTracker(userId, trackerId, {
+      issueCount,
+      lastActivityAt: new Date()
+    });
+  },
+};
+
+// Issues Operations
+export const issuesService = {
+  // Get all issues for a user
+  async getIssues(userId: string): Promise<Issue[]> {
+    const q = query(
+      collection(db, `users/${userId}/issues`),
+      orderBy('createdAt', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...convertTimestamps(doc.data())
+    } as unknown)) as Issue[];
+  },
+
+  // Get issues by issue tracker
+  async getIssuesByTracker(userId: string, trackerId: string): Promise<Issue[]> {
+    const q = query(
+      collection(db, `users/${userId}/issues`),
+      where('issueTrackerId', '==', trackerId),
+      orderBy('createdAt', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...convertTimestamps(doc.data())
+    } as unknown)) as Issue[];
+  },
+
+  // Subscribe to issues changes
+  subscribeToIssues(userId: string, callback: (issues: Issue[]) => void) {
+    const q = query(
+      collection(db, `users/${userId}/issues`),
+      orderBy('createdAt', 'desc')
+    );
+    return onSnapshot(q, (snapshot) => {
+      const issues = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...convertTimestamps(doc.data())
+      } as unknown)) as Issue[];
+      callback(issues);
+    });
+  },
+
+  // Subscribe to issues by tracker
+  subscribeToIssuesByTracker(userId: string, trackerId: string, callback: (issues: Issue[]) => void) {
+    const q = query(
+      collection(db, `users/${userId}/issues`),
+      where('issueTrackerId', '==', trackerId),
+      orderBy('createdAt', 'desc')
+    );
+    return onSnapshot(q, (snapshot) => {
+      const issues = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...convertTimestamps(doc.data())
+      } as unknown)) as Issue[];
+      callback(issues);
+    });
+  },
+
+  // Add new issue
+  async addIssue(userId: string, issue: Omit<Issue, 'id' | 'userId' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    const now = Timestamp.now();
+    
+    // Prepare document data, filtering out undefined values
+    const docData: FirestoreCreateData = {
+      title: issue.title,
+      userId,
+      type: issue.type,
+      priority: issue.priority || IssuePriority.MEDIUM,
+      status: issue.status || IssueStatus.OPEN,
+      issueTrackerId: issue.issueTrackerId,
+      createdAt: now,
+      updatedAt: now,
+    };
+    
+    // Only add fields that are not undefined
+    if (issue.description !== undefined) {
+      docData.description = issue.description;
+    }
+    if (issue.notes !== undefined) {
+      docData.notes = issue.notes;
+    }
+    // projectId removed - issues are now organized by issue trackers
+    if (issue.labels !== undefined) {
+      docData.labels = issue.labels;
+    }
+    if (issue.assignee !== undefined) {
+      docData.assignee = issue.assignee;
+    }
+    if (issue.reporter !== undefined) {
+      docData.reporter = issue.reporter;
+    }
+    if (issue.estimatedEffort !== undefined) {
+      docData.estimatedEffort = issue.estimatedEffort;
+    }
+    if (issue.reproductionSteps !== undefined) {
+      docData.reproductionSteps = issue.reproductionSteps;
+    }
+    if (issue.acceptanceCriteria !== undefined) {
+      docData.acceptanceCriteria = issue.acceptanceCriteria;
+    }
+    if (issue.environment !== undefined) {
+      docData.environment = issue.environment;
+    }
+    if (issue.attachments !== undefined) {
+      docData.attachments = issue.attachments;
+    }
+    if (issue.resolvedAt !== undefined) {
+      docData.resolvedAt = Timestamp.fromDate(issue.resolvedAt);
+    }
+    if (issue.closedAt !== undefined) {
+      docData.closedAt = Timestamp.fromDate(issue.closedAt);
+    }
+    
+    const docRef = await addDoc(collection(db, `users/${userId}/issues`), docData);
+    
+    // Update the tracker's issue count and last activity
+    await issueTrackersService.updateIssueCount(userId, issue.issueTrackerId);
+    
+    return docRef.id;
+  },
+
+  // Update issue
+  async updateIssue(userId: string, issueId: string, updates: Partial<Issue>): Promise<void> {
+    const docRef = doc(db, `users/${userId}/issues`, issueId);
+    const updateData: FirestoreUpdateData = {
+      updatedAt: Timestamp.now(),
+    };
+    
+    // Handle status changes with timestamps
+    if (updates.status) {
+      if (updates.status === IssueStatus.RESOLVED && !updates.resolvedAt) {
+        updateData.resolvedAt = Timestamp.now();
+      }
+      if ((updates.status === IssueStatus.CLOSED || updates.status === IssueStatus.WONT_FIX) && !updates.closedAt) {
+        updateData.closedAt = Timestamp.now();
+      }
+    }
+    
+    // Only add fields that are not undefined
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value !== undefined) {
+        if (key === 'resolvedAt' && value instanceof Date) {
+          updateData[key] = Timestamp.fromDate(value);
+        } else if (key === 'closedAt' && value instanceof Date) {
+          updateData[key] = Timestamp.fromDate(value);
+        } else {
+          updateData[key] = value;
+        }
+      }
+    });
+    
+    await updateDoc(docRef, updateData);
+  },
+
+  // Delete issue
+  async deleteIssue(userId: string, issueId: string): Promise<void> {
+    // Get the issue first to find its tracker
+    const issueSnapshot = await getDocs(query(collection(db, `users/${userId}/issues`), where('__name__', '==', issueId)));
+    
+    if (!issueSnapshot.empty) {
+      const issueData = issueSnapshot.docs[0].data() as Issue;
+      const trackerId = issueData.issueTrackerId;
+      
+      // Delete the issue
+      const docRef = doc(db, `users/${userId}/issues`, issueId);
+      await deleteDoc(docRef);
+      
+      // Update the tracker's issue count
+      if (trackerId) {
+        await issueTrackersService.updateIssueCount(userId, trackerId);
+      }
+    }
+  },
+
+  // Update issue with AI analysis results
+  async updateIssueAIAnalysis(userId: string, issueId: string, analysis: Record<string, unknown>): Promise<void> {
+    const issueRef = doc(db, `users/${userId}/issues`, issueId);
+    
+    const updateData: FirestoreUpdateData = {
+      aiComplexityAnalysis: analysis,
+      aiAnalysisDate: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    };
+    
+    await updateDoc(issueRef, updateData);
+  },
+
+  // Convert issue to next action
+  async convertIssueToNextAction(
+    userId: string,
+    issue: Issue,
+    nextActionData?: Partial<NextAction>
+  ): Promise<string> {
+    const batch = writeBatch(db);
+    
+    // Prepare next action data
+    const nextActionDoc: FirestoreCreateData = {
+      title: issue.title,
+      userId,
+      status: NextActionStatus.QUEUED,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    };
+    
+    // Add issue data to next action
+    if (issue.description !== undefined) {
+      nextActionDoc.description = issue.description;
+    }
+    if (issue.notes !== undefined) {
+      nextActionDoc.notes = issue.notes;
+    }
+    // Note: projectId is now linked through the issue tracker if needed
+    
+    // Add additional next action data, filtering undefined values
+    if (nextActionData) {
+      Object.entries(nextActionData).forEach(([key, value]) => {
+        if (value !== undefined) {
+          if (key === 'scheduledDate' && value instanceof Date) {
+            nextActionDoc[key] = Timestamp.fromDate(value);
+          } else if (key === 'completedDate' && value instanceof Date) {
+            nextActionDoc[key] = Timestamp.fromDate(value);
+          } else {
+            nextActionDoc[key] = value;
+          }
+        }
+      });
+    }
+    
+    // Add to next actions
+    const nextActionRef = doc(collection(db, `users/${userId}/nextActions`));
+    batch.set(nextActionRef, nextActionDoc);
+    
+    // Update issue with reference to next action
+    const issueRef = doc(db, `users/${userId}/issues`, issue.id);
+    batch.update(issueRef, {
+      nextActionId: nextActionRef.id,
+      status: IssueStatus.IN_PROGRESS,
+      updatedAt: Timestamp.now(),
+    });
+    
+    await batch.commit();
+    return nextActionRef.id;
+  },
+
+  // Convert inbox item to issue
+  async convertInboxToIssue(
+    userId: string,
+    inboxItem: InboxItem,
+    issueData: Omit<Issue, 'id' | 'userId' | 'createdAt' | 'updatedAt' | 'title' | 'description' | 'notes'>
+  ): Promise<string> {
+    const batch = writeBatch(db);
+    
+    // Prepare issue data
+    const issueDoc: FirestoreCreateData = {
+      title: inboxItem.title,
+      userId,
+      type: issueData.type,
+      priority: issueData.priority || IssuePriority.MEDIUM,
+      status: issueData.status || IssueStatus.OPEN,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    };
+    
+    // Add inbox content
+    if (inboxItem.description !== undefined) {
+      issueDoc.description = inboxItem.description;
+    }
+    if (inboxItem.notes !== undefined) {
+      issueDoc.notes = inboxItem.notes;
+    }
+    
+    // Add additional issue data
+    Object.entries(issueData).forEach(([key, value]) => {
+      if (value !== undefined && key !== 'type' && key !== 'priority' && key !== 'status') {
+        if (key === 'resolvedAt' && value instanceof Date) {
+          issueDoc[key] = Timestamp.fromDate(value);
+        } else if (key === 'closedAt' && value instanceof Date) {
+          issueDoc[key] = Timestamp.fromDate(value);
+        } else {
+          issueDoc[key] = value;
+        }
+      }
+    });
+    
+    // Add to issues
+    const issueRef = doc(collection(db, `users/${userId}/issues`));
+    batch.set(issueRef, issueDoc);
+    
+    // Mark inbox item as processed
+    const inboxRef = doc(db, `users/${userId}/inbox`, inboxItem.id);
+    batch.update(inboxRef, {
+      processed: true,
+      updatedAt: Timestamp.now(),
+    });
+    
+    await batch.commit();
+    return issueRef.id;
+  },
+
+  // Get issues by status
+  async getIssuesByStatus(userId: string, status: IssueStatus): Promise<Issue[]> {
+    const q = query(
+      collection(db, `users/${userId}/issues`),
+      where('status', '==', status),
+      orderBy('createdAt', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...convertTimestamps(doc.data())
+    } as unknown)) as Issue[];
+  },
+
+  // Get issues by type
+  async getIssuesByType(userId: string, type: IssueType): Promise<Issue[]> {
+    const q = query(
+      collection(db, `users/${userId}/issues`),
+      where('type', '==', type),
+      orderBy('createdAt', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...convertTimestamps(doc.data())
+    } as unknown)) as Issue[];
+  },
+
+  // Get issues by priority
+  async getIssuesByPriority(userId: string, priority: IssuePriority): Promise<Issue[]> {
+    const q = query(
+      collection(db, `users/${userId}/issues`),
+      where('priority', '==', priority),
+      orderBy('createdAt', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...convertTimestamps(doc.data())
+    } as unknown)) as Issue[];
   },
 }; 

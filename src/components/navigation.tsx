@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { useLanguage } from '@/contexts/language-context';
 import { cn } from '@/lib/utils';
-import { Inbox, CheckSquare, Calendar, FolderOpen, Menu, X, User, LogOut, ChevronDown, Cloud, Settings, BarChart3, BookOpen } from 'lucide-react';
+import { Inbox, CheckSquare, Calendar, FolderOpen, Menu, X, User, LogOut, ChevronDown, Cloud, Settings, BarChart3, BookOpen, Bug } from 'lucide-react';
 import { LanguageToggle } from '@/components/ui/language-toggle';
 import { Logo, LogoMark } from '@/components/ui/logo';
 import { WeeklyReviewModal } from '@/components/ui/weekly-review-modal';
@@ -41,6 +41,12 @@ export function Navigation() {
       href: '/projects',
       icon: FolderOpen,
       description: t('nav.projects.description'),
+    },
+    {
+      name: t('nav.issues'),
+      href: '/issues',
+      icon: Bug,
+      description: t('nav.issues.description'),
     },
     {
       name: t('nav.maybeSomeday'),

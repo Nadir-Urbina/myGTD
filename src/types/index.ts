@@ -102,4 +102,89 @@ export interface MaybeSomedayItem extends BaseItem {
   reviewDate?: Date; // when to review this item again
   priority?: 'low' | 'medium' | 'high'; // priority within maybe/someday
   tags?: string[]; // for organizing maybe/someday items
+}
+
+// Issue Tracker Types
+export enum IssueType {
+  BUG = 'bug',
+  FEATURE = 'feature',
+  IMPROVEMENT = 'improvement',
+  RESEARCH = 'research',
+  QUESTION = 'question'
+}
+
+export enum IssuePriority {
+  LOW = 'low',
+  MEDIUM = 'medium',
+  HIGH = 'high',
+  CRITICAL = 'critical'
+}
+
+export enum IssueStatus {
+  OPEN = 'open',
+  IN_PROGRESS = 'in_progress',
+  RESOLVED = 'resolved',
+  CLOSED = 'closed',
+  DUPLICATE = 'duplicate',
+  WONT_FIX = 'wont_fix'
+}
+
+export enum IssueComplexity {
+  SIMPLE = 'simple',
+  MODERATE = 'moderate',
+  COMPLEX = 'complex'
+}
+
+export enum IssueEffort {
+  SMALL = 'small',   // 1-2 hours
+  MEDIUM = 'medium', // 1-3 days
+  LARGE = 'large'    // 1+ weeks
+}
+
+export interface IssueTracker extends BaseItem {
+  name: string; // "Website Redesign", "Mobile App v2", etc.
+  projectId?: string; // Optional link to existing project
+  settings: {
+    allowedIssueTypes: IssueType[];
+    defaultPriority: IssuePriority;
+    autoPromoteToNextActions: boolean;
+    enableAIAnalysis: boolean;
+  };
+  issueCount?: number; // cached count for performance
+  lastActivityAt?: Date; // when last issue was created/updated
+}
+
+export interface Issue extends BaseItem {
+  type: IssueType;
+  priority: IssuePriority;
+  status: IssueStatus;
+  issueTrackerId: string; // Link to specific issue tracker board
+  labels?: string[]; // for categorization (e.g., "frontend", "backend", "ui", "performance")
+  assignee?: string; // who's responsible (could be user ID or email)
+  reporter?: string; // who reported it (user ID or email)
+  resolvedAt?: Date;
+  closedAt?: Date;
+  
+  // GTD Integration
+  nextActionId?: string; // when promoted to next action
+  estimatedEffort?: IssueEffort;
+  
+  // AI Analysis for issues - stored analysis result
+  aiComplexityAnalysis?: Record<string, unknown>; // AI complexity analysis data
+  aiAnalysisDate?: Date; // when the AI analysis was last performed
+  
+  // Additional metadata
+  reproductionSteps?: string; // for bugs
+  acceptanceCriteria?: string; // for features
+  environment?: string; // browser, OS, etc. for bugs
+  attachments?: string[]; // file URLs or references
+}
+
+// For linking issues to projects or other entities
+export interface IssueReference {
+  issueId: string;
+  referencedBy: 'project' | 'nextAction' | 'maybeSomeday';
+  referenceId: string;
+  linkType: 'blocks' | 'relates' | 'duplicates' | 'implements';
+  createdAt: Date;
 } 
